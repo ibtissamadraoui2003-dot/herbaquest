@@ -1,0 +1,654 @@
+{
+ "_note": "Fiches rédigées pour la démo. Toxicité d'après les listes ASPCA : à vérifier avant diffusion. Ne remplace pas un avis vétérinaire.",
+ "cards": [
+  {
+   "match": [
+    "african violet",
+    "saintpaulia"
+   ],
+   "nom": "Violette africaine",
+   "scientifique": "Saintpaulia ionantha",
+   "famille": "Gesnériacées",
+   "origine": "Tanzanie (Afrique de l'Est)",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Rosette basse de feuilles rondes et veloutées, petites fleurs violettes au centre.",
+   "fait": "Elle fleurit presque toute l'année en intérieur si elle reçoit assez de lumière."
+  },
+  {
+   "match": [
+    "aloe vera",
+    "aloe"
+   ],
+   "nom": "Aloès",
+   "scientifique": "Aloe vera",
+   "famille": "Asphodélacées",
+   "origine": "Péninsule Arabique",
+   "toxique_chat": true,
+   "toxicite": "Saponines et anthraquinones : vomissements, diarrhée.",
+   "indice": "Feuilles charnues en rosette, bords garnis de petites dents, souvent tachetées de blanc.",
+   "fait": "Ses feuilles stockent l'eau dans un gel : c'est une plante succulente."
+  },
+  {
+   "match": [
+    "anthurium"
+   ],
+   "nom": "Anthurium",
+   "scientifique": "Anthurium andraeanum",
+   "famille": "Aracées",
+   "origine": "Colombie et Équateur",
+   "toxique_chat": true,
+   "toxicite": "Cristaux d'oxalate de calcium : irritation de la bouche.",
+   "indice": "Grande « fleur » cireuse rouge en forme de cœur portant un épi dressé.",
+   "fait": "La partie rouge n'est pas un pétale mais une feuille modifiée, la spathe."
+  },
+  {
+   "match": [
+    "areca",
+    "dypsis"
+   ],
+   "nom": "Palmier aréca",
+   "scientifique": "Dypsis lutescens",
+   "famille": "Arécacées",
+   "origine": "Madagascar",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Touffe de tiges fines jaunâtres, longues palmes arquées à folioles étroites.",
+   "fait": "Très commun en intérieur, il est pourtant menacé dans son milieu naturel à Madagascar."
+  },
+  {
+   "match": [
+    "asparagus fern",
+    "asparagus"
+   ],
+   "nom": "Asperge plumeuse",
+   "scientifique": "Asparagus setaceus",
+   "famille": "Asparagacées",
+   "origine": "Afrique australe",
+   "toxique_chat": true,
+   "toxicite": "Sapogénines : troubles digestifs, irritation de la peau.",
+   "indice": "Feuillage vaporeux extrêmement fin, en plans horizontaux, tiges munies de petites épines.",
+   "fait": "Malgré son allure, ce n'est pas une fougère : elle est cousine de l'asperge."
+  },
+  {
+   "match": [
+    "iron cross",
+    "masoniana"
+   ],
+   "nom": "Bégonia croix de fer",
+   "scientifique": "Begonia masoniana",
+   "famille": "Bégoniacées",
+   "origine": "Chine du Sud et Vietnam",
+   "toxique_chat": true,
+   "toxicite": "Oxalates solubles : salivation, vomissements.",
+   "indice": "Feuilles gaufrées vert clair marquées d'une croix brun foncé au centre.",
+   "fait": "Son nom vient du motif central, qui rappelle une croix de fer."
+  },
+  {
+   "match": [
+    "begonia"
+   ],
+   "nom": "Bégonia",
+   "scientifique": "Begonia spp.",
+   "famille": "Bégoniacées",
+   "origine": "Régions tropicales d'Amérique, d'Afrique et d'Asie",
+   "toxique_chat": true,
+   "toxicite": "Oxalates solubles, surtout dans les parties souterraines.",
+   "indice": "Feuilles asymétriques (un côté plus grand que l'autre), souvent colorées ou tachetées.",
+   "fait": "Le genre compte plus de 2 000 espèces, l'un des plus vastes du règne végétal."
+  },
+  {
+   "match": [
+    "bird of paradise",
+    "strelitzia"
+   ],
+   "nom": "Oiseau de paradis",
+   "scientifique": "Strelitzia reginae",
+   "famille": "Strélitziacées",
+   "origine": "Afrique du Sud",
+   "toxique_chat": true,
+   "toxicite": "Troubles digestifs légers en cas d'ingestion.",
+   "indice": "Grandes feuilles en pagaie sur de longs pétioles ; fleur orange et bleue en forme de tête d'oiseau.",
+   "fait": "Dans la nature, ce sont des oiseaux qui la pollinisent en se posant sur la fleur."
+  },
+  {
+   "match": [
+    "birds nest",
+    "bird s nest",
+    "asplenium"
+   ],
+   "nom": "Fougère nid d'oiseau",
+   "scientifique": "Asplenium nidus",
+   "famille": "Aspléniacées",
+   "origine": "Asie tropicale et Australie",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Frondes entières (non découpées), vert vif, ondulées, disposées en entonnoir.",
+   "fait": "Épiphyte : elle pousse sur les arbres et recueille les débris dans son « nid »."
+  },
+  {
+   "match": [
+    "boston fern",
+    "nephrolepis"
+   ],
+   "nom": "Fougère de Boston",
+   "scientifique": "Nephrolepis exaltata",
+   "famille": "Néphrolépidacées",
+   "origine": "Amériques tropicales",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Longues frondes retombantes finement découpées en petites folioles alignées.",
+   "fait": "Les fougères se reproduisent par des spores, sans fleurs ni graines."
+  },
+  {
+   "match": [
+    "rattlesnake",
+    "lancifolia"
+   ],
+   "nom": "Calathéa serpent à sonnette",
+   "scientifique": "Goeppertia insignis (Calathea lancifolia)",
+   "famille": "Marantacées",
+   "origine": "Brésil",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Longues feuilles ondulées, taches ovales vert foncé, revers pourpre.",
+   "fait": "Ses feuilles se redressent le soir et s'abaissent le jour."
+  },
+  {
+   "match": [
+    "calathea"
+   ],
+   "nom": "Calathéa",
+   "scientifique": "Calathea spp.",
+   "famille": "Marantacées",
+   "origine": "Amérique tropicale",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Feuilles larges aux motifs graphiques (rayures, plumes), revers souvent pourpre.",
+   "fait": "Surnommée « plante prière » : ses feuilles se referment la nuit."
+  },
+  {
+   "match": [
+    "cast iron",
+    "aspidistra"
+   ],
+   "nom": "Aspidistra",
+   "scientifique": "Aspidistra elatior",
+   "famille": "Asparagacées",
+   "origine": "Japon et Taïwan",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Grandes feuilles vert foncé, lancéolées, coriaces, partant directement du sol.",
+   "fait": "Surnommée « plante de fer » : elle supporte l'ombre et l'oubli d'arrosage."
+  },
+  {
+   "match": [
+    "chinese money",
+    "pilea"
+   ],
+   "nom": "Pilea",
+   "scientifique": "Pilea peperomioides",
+   "famille": "Urticacées",
+   "origine": "Chine (Yunnan)",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Feuilles parfaitement rondes comme des pièces, pétiole attaché au centre de la feuille.",
+   "fait": "Elle s'est répandue en Europe par boutures échangées entre particuliers avant d'être vendue."
+  },
+  {
+   "match": [
+    "chinese evergreen",
+    "aglaonema"
+   ],
+   "nom": "Aglaonéma",
+   "scientifique": "Aglaonema spp.",
+   "famille": "Aracées",
+   "origine": "Asie du Sud-Est",
+   "toxique_chat": true,
+   "toxicite": "Cristaux d'oxalate de calcium : irritation buccale.",
+   "indice": "Feuilles ovales panachées de vert, d'argent ou de rose, sur des tiges courtes.",
+   "fait": "Elle tolère très bien la faible lumière des bureaux."
+  },
+  {
+   "match": [
+    "christmas cactus",
+    "schlumbergera"
+   ],
+   "nom": "Cactus de Noël",
+   "scientifique": "Schlumbergera spp.",
+   "famille": "Cactacées",
+   "origine": "Brésil (forêts côtières)",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Tiges plates articulées en segments, fleurs roses ou rouges au bout des tiges.",
+   "fait": "Un cactus de forêt humide : il vit sur les arbres et n'a pas d'épines."
+  },
+  {
+   "match": [
+    "chrysanthemum"
+   ],
+   "nom": "Chrysanthème",
+   "scientifique": "Chrysanthemum spp.",
+   "famille": "Astéracées",
+   "origine": "Asie de l'Est",
+   "toxique_chat": true,
+   "toxicite": "Pyréthrines et lactones : vomissements, salivation, perte de coordination.",
+   "indice": "Fleurs en pompons très denses, feuilles découpées et aromatiques.",
+   "fait": "Chaque « fleur » est en réalité un bouquet de centaines de petites fleurs."
+  },
+  {
+   "match": [
+    "ctenanthe"
+   ],
+   "nom": "Cténanthe",
+   "scientifique": "Ctenanthe spp.",
+   "famille": "Marantacées",
+   "origine": "Brésil",
+   "toxique_chat": false,
+   "toxicite": "Généralement considérée comme non toxique pour les chats.",
+   "indice": "Feuilles allongées à motif en arêtes de poisson, revers pourpre, port buissonnant.",
+   "fait": "Proche parente des calathéas, avec le même mouvement des feuilles jour/nuit."
+  },
+  {
+   "match": [
+    "daffodil",
+    "narcissus"
+   ],
+   "nom": "Narcisse (jonquille)",
+   "scientifique": "Narcissus spp.",
+   "famille": "Amaryllidacées",
+   "origine": "Europe du Sud et Afrique du Nord",
+   "toxique_chat": true,
+   "toxicite": "Lycorine, surtout dans le bulbe : vomissements, troubles cardiaques.",
+   "indice": "Fleur jaune ou blanche avec une trompette centrale, feuilles en rubans.",
+   "fait": "Plusieurs espèces de narcisses poussent à l'état sauvage au Maroc."
+  },
+  {
+   "match": [
+    "dracaena"
+   ],
+   "nom": "Dragonnier",
+   "scientifique": "Dracaena spp.",
+   "famille": "Asparagacées",
+   "origine": "Afrique tropicale",
+   "toxique_chat": true,
+   "toxicite": "Saponines : vomissements, pupilles dilatées chez le chat.",
+   "indice": "Bouquets de feuilles en lanières au sommet de tiges nues ressemblant à des cannes.",
+   "fait": "Le dragonnier de Socotra produit une résine rouge appelée « sang-dragon »."
+  },
+  {
+   "match": [
+    "dumb cane",
+    "dieffenbachia"
+   ],
+   "nom": "Dieffenbachia",
+   "scientifique": "Dieffenbachia spp.",
+   "famille": "Aracées",
+   "origine": "Amérique tropicale",
+   "toxique_chat": true,
+   "toxicite": "Oxalate de calcium : brûlure intense de la bouche, gonflement.",
+   "indice": "Grandes feuilles ovales vertes éclaboussées de crème, sur une tige épaisse.",
+   "fait": "Son nom anglais « dumb cane » vient de ce que sa sève peut paralyser temporairement la voix."
+  },
+  {
+   "match": [
+    "elephant ear",
+    "alocasia"
+   ],
+   "nom": "Oreille d'éléphant",
+   "scientifique": "Alocasia spp.",
+   "famille": "Aracées",
+   "origine": "Asie tropicale et Australie orientale",
+   "toxique_chat": true,
+   "toxicite": "Oxalate de calcium : irritation buccale, salivation.",
+   "indice": "Très grandes feuilles en forme de flèche ou de bouclier, nervures claires marquées.",
+   "fait": "Certaines espèces ont des feuilles de plus d'un mètre de long."
+  },
+  {
+   "match": [
+    "english ivy",
+    "hedera"
+   ],
+   "nom": "Lierre commun",
+   "scientifique": "Hedera helix",
+   "famille": "Araliacées",
+   "origine": "Europe et Asie occidentale",
+   "toxique_chat": true,
+   "toxicite": "Saponines triterpéniques : vomissements, douleurs abdominales.",
+   "indice": "Feuilles à 3 ou 5 lobes sur des tiges grimpantes ou retombantes.",
+   "fait": "Il s'accroche aux murs grâce à de petites racines-crampons."
+  },
+  {
+   "match": [
+    "hyacinth",
+    "hyacinthus"
+   ],
+   "nom": "Jacinthe",
+   "scientifique": "Hyacinthus orientalis",
+   "famille": "Asparagacées",
+   "origine": "Méditerranée orientale",
+   "toxique_chat": true,
+   "toxicite": "Alcaloïdes concentrés dans le bulbe : vomissements, diarrhée.",
+   "indice": "Épi dense de petites fleurs en clochettes très parfumées, feuilles épaisses dressées.",
+   "fait": "Son parfum est si puissant qu'un seul pied embaume une pièce."
+  },
+  {
+   "match": [
+    "jade",
+    "crassula"
+   ],
+   "nom": "Arbre de jade",
+   "scientifique": "Crassula ovata",
+   "famille": "Crassulacées",
+   "origine": "Afrique du Sud et Mozambique",
+   "toxique_chat": true,
+   "toxicite": "Principe toxique mal identifié : vomissements, abattement.",
+   "indice": "Feuilles ovales épaisses et brillantes, tronc ligneux d'allure de petit arbre.",
+   "fait": "Elle fixe le CO₂ la nuit (photosynthèse CAM) pour économiser l'eau."
+  },
+  {
+   "match": [
+    "kalanchoe"
+   ],
+   "nom": "Kalanchoé",
+   "scientifique": "Kalanchoe spp.",
+   "famille": "Crassulacées",
+   "origine": "Madagascar",
+   "toxique_chat": true,
+   "toxicite": "Bufadiénolides : troubles digestifs, parfois cardiaques.",
+   "indice": "Feuilles charnues à bord crénelé, bouquets serrés de petites fleurs à 4 pétales.",
+   "fait": "Certaines espèces produisent des plantules directement sur le bord de leurs feuilles."
+  },
+  {
+   "match": [
+    "lily of the valley",
+    "convallaria"
+   ],
+   "nom": "Muguet",
+   "scientifique": "Convallaria majalis",
+   "famille": "Asparagacées",
+   "origine": "Europe et Asie tempérées",
+   "toxique_chat": true,
+   "toxicite": "Glycosides cardiaques : très dangereux, troubles du rythme cardiaque.",
+   "indice": "Deux feuilles larges et une hampe de clochettes blanches pendantes.",
+   "fait": "Toute la plante est toxique, y compris l'eau du vase."
+  },
+  {
+   "match": [
+    "peace lily",
+    "spathiphyllum"
+   ],
+   "nom": "Fleur de lune",
+   "scientifique": "Spathiphyllum spp.",
+   "famille": "Aracées",
+   "origine": "Amérique tropicale",
+   "toxique_chat": true,
+   "toxicite": "Oxalate de calcium : irritation buccale (ce n'est pas un vrai lis).",
+   "indice": "Feuilles vert foncé brillantes, spathe blanche dressée autour d'un épi crème.",
+   "fait": "Elle « s'affaisse » nettement quand elle a soif, puis se redresse après arrosage."
+  },
+  {
+   "match": [
+    "lilium",
+    "hemerocallis",
+    "lily"
+   ],
+   "nom": "Lis / hémérocalle",
+   "scientifique": "Lilium spp. / Hemerocallis spp.",
+   "famille": "Liliacées / Asphodélacées",
+   "origine": "Hémisphère Nord tempéré, Asie de l'Est",
+   "toxique_chat": true,
+   "toxicite": "Extrêmement dangereux pour le chat : insuffisance rénale, même à très faible dose (pollen compris).",
+   "indice": "Grandes fleurs en trompette à 6 tépales, étamines saillantes, feuilles étroites.",
+   "fait": "Chaque fleur d'hémérocalle ne dure qu'une journée."
+  },
+  {
+   "match": [
+    "money tree",
+    "pachira"
+   ],
+   "nom": "Pachira",
+   "scientifique": "Pachira aquatica",
+   "famille": "Malvacées",
+   "origine": "Amérique centrale et du Sud",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Feuilles palmées à 5–7 folioles, troncs souvent tressés.",
+   "fait": "Le tressage des troncs est fait à la main sur de jeunes plants."
+  },
+  {
+   "match": [
+    "monstera"
+   ],
+   "nom": "Monstera",
+   "scientifique": "Monstera deliciosa",
+   "famille": "Aracées",
+   "origine": "Du sud du Mexique au Panama",
+   "toxique_chat": true,
+   "toxicite": "Oxalate de calcium : irritation de la bouche et de la gorge.",
+   "indice": "Très grandes feuilles en cœur, perforées et profondément découpées.",
+   "fait": "Les trous laisseraient passer le vent et la lumière vers les feuilles du bas."
+  },
+  {
+   "match": [
+    "orchid",
+    "phalaenopsis"
+   ],
+   "nom": "Orchidée",
+   "scientifique": "Orchidaceae (souvent Phalaenopsis)",
+   "famille": "Orchidacées",
+   "origine": "Asie du Sud-Est pour Phalaenopsis",
+   "toxique_chat": false,
+   "toxicite": "Phalaenopsis : non toxique pour les chats.",
+   "indice": "Hampe arquée de fleurs symétriques à labelle central, feuilles épaisses à la base, racines aériennes.",
+   "fait": "Les orchidées forment l'une des plus grandes familles de plantes à fleurs."
+  },
+  {
+   "match": [
+    "parlor palm",
+    "chamaedorea"
+   ],
+   "nom": "Palmier nain",
+   "scientifique": "Chamaedorea elegans",
+   "famille": "Arécacées",
+   "origine": "Mexique et Guatemala",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Petit palmier à tiges fines, palmes légères à folioles vert tendre.",
+   "fait": "Il pousse naturellement à l'ombre des forêts, d'où sa tolérance à l'intérieur."
+  },
+  {
+   "match": [
+    "poinsettia"
+   ],
+   "nom": "Poinsettia",
+   "scientifique": "Euphorbia pulcherrima",
+   "famille": "Euphorbiacées",
+   "origine": "Mexique",
+   "toxique_chat": true,
+   "toxicite": "Latex irritant : troubles légers (réputation exagérée).",
+   "indice": "Grandes « fleurs » rouges en étoile au sommet, qui sont en réalité des feuilles.",
+   "fait": "Ses vraies fleurs sont les minuscules boutons jaunes au centre."
+  },
+  {
+   "match": [
+    "polka dot",
+    "hypoestes"
+   ],
+   "nom": "Plante à pois",
+   "scientifique": "Hypoestes phyllostachya",
+   "famille": "Acanthacées",
+   "origine": "Madagascar",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Petites feuilles vertes mouchetées de rose, de rouge ou de blanc.",
+   "fait": "Plus elle reçoit de lumière, plus ses taches sont contrastées."
+  },
+  {
+   "match": [
+    "ponytail",
+    "beaucarnea"
+   ],
+   "nom": "Pied d'éléphant",
+   "scientifique": "Beaucarnea recurvata",
+   "famille": "Asparagacées",
+   "origine": "Mexique",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Tronc renflé à la base, touffe de longues feuilles fines retombant en queue de cheval.",
+   "fait": "Sa base renflée est une réserve d'eau ; ce n'est pas un palmier."
+  },
+  {
+   "match": [
+    "pothos",
+    "ivy arum",
+    "epipremnum"
+   ],
+   "nom": "Pothos",
+   "scientifique": "Epipremnum aureum",
+   "famille": "Aracées",
+   "origine": "Mo'orea (Polynésie française)",
+   "toxique_chat": true,
+   "toxicite": "Oxalate de calcium : irritation buccale, vomissements.",
+   "indice": "Liane retombante, feuilles en cœur vertes marbrées de jaune.",
+   "fait": "Quasi increvable, elle est surnommée « lierre du diable »."
+  },
+  {
+   "match": [
+    "prayer plant",
+    "maranta"
+   ],
+   "nom": "Maranta",
+   "scientifique": "Maranta leuconeura",
+   "famille": "Marantacées",
+   "origine": "Brésil",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Feuilles ovales à nervures rouges en arêtes, taches foncées de part et d'autre.",
+   "fait": "Ses feuilles se dressent le soir comme des mains en prière."
+  },
+  {
+   "match": [
+    "rubber plant",
+    "ficus elastica",
+    "ficus"
+   ],
+   "nom": "Caoutchouc",
+   "scientifique": "Ficus elastica",
+   "famille": "Moracées",
+   "origine": "Asie du Sud et du Sud-Est",
+   "toxique_chat": true,
+   "toxicite": "Latex irritant pour la bouche et la peau.",
+   "indice": "Grandes feuilles ovales épaisses, très brillantes, vert foncé à bordeaux.",
+   "fait": "Son latex a servi autrefois à fabriquer du caoutchouc."
+  },
+  {
+   "match": [
+    "sago",
+    "cycas"
+   ],
+   "nom": "Cycas du Japon",
+   "scientifique": "Cycas revoluta",
+   "famille": "Cycadacées",
+   "origine": "Sud du Japon",
+   "toxique_chat": true,
+   "toxicite": "Cycasine : très dangereux, atteinte grave du foie ; les graines sont les plus toxiques.",
+   "indice": "Couronne de palmes rigides et piquantes au sommet d'un tronc trapu et écailleux.",
+   "fait": "Ce n'est pas un palmier : les cycas existaient déjà au temps des dinosaures."
+  },
+  {
+   "match": [
+    "schefflera"
+   ],
+   "nom": "Schefflera",
+   "scientifique": "Schefflera spp.",
+   "famille": "Araliacées",
+   "origine": "Taïwan, Asie du Sud-Est, Australie",
+   "toxique_chat": true,
+   "toxicite": "Oxalate de calcium : irritation buccale, vomissements.",
+   "indice": "Feuilles composées de 7 à 9 folioles disposées en ombrelle.",
+   "fait": "Surnommée « arbre ombrelle » pour la disposition de ses folioles."
+  },
+  {
+   "match": [
+    "snake plant",
+    "sansev"
+   ],
+   "nom": "Langue de belle-mère",
+   "scientifique": "Dracaena trifasciata (Sansevieria)",
+   "famille": "Asparagacées",
+   "origine": "Afrique de l'Ouest",
+   "toxique_chat": true,
+   "toxicite": "Saponines : nausées, vomissements.",
+   "indice": "Feuilles dressées en épée, rigides, zébrées, souvent bordées de jaune.",
+   "fait": "Elle absorbe le CO₂ la nuit (photosynthèse CAM)."
+  },
+  {
+   "match": [
+    "tradescantia"
+   ],
+   "nom": "Misère",
+   "scientifique": "Tradescantia spp.",
+   "famille": "Commélinacées",
+   "origine": "Amériques",
+   "toxique_chat": true,
+   "toxicite": "Sève irritante : dermatite chez le chat.",
+   "indice": "Tiges retombantes, petites feuilles rayées d'argent et de violet.",
+   "fait": "Une tige cassée posée dans l'eau refait des racines en quelques jours."
+  },
+  {
+   "match": [
+    "tulip"
+   ],
+   "nom": "Tulipe",
+   "scientifique": "Tulipa spp.",
+   "famille": "Liliacées",
+   "origine": "Asie centrale",
+   "toxique_chat": true,
+   "toxicite": "Tulipalines, concentrées dans le bulbe : vomissements, salivation.",
+   "indice": "Fleur en coupe unique à 6 tépales au sommet d'une tige, feuilles larges glauques.",
+   "fait": "Au XVIIᵉ siècle, aux Pays-Bas, un bulbe a pu valoir le prix d'une maison."
+  },
+  {
+   "match": [
+    "venus flytrap",
+    "dionaea"
+   ],
+   "nom": "Dionée attrape-mouche",
+   "scientifique": "Dionaea muscipula",
+   "famille": "Droséracées",
+   "origine": "Caroline du Nord et du Sud (États-Unis)",
+   "toxique_chat": false,
+   "toxicite": "Non toxique pour les chats.",
+   "indice": "Pièges en mâchoires bordées de cils, au bout de feuilles aplaties.",
+   "fait": "Le piège ne se ferme que si deux poils sont touchés en une vingtaine de secondes."
+  },
+  {
+   "match": [
+    "yucca"
+   ],
+   "nom": "Yucca",
+   "scientifique": "Yucca spp.",
+   "famille": "Asparagacées",
+   "origine": "Amérique du Nord et centrale",
+   "toxique_chat": true,
+   "toxicite": "Saponines : vomissements, faiblesse.",
+   "indice": "Rosettes de feuilles en épée rigides au sommet de troncs épais.",
+   "fait": "Chaque yucca dépend d'un papillon de nuit spécifique pour sa pollinisation."
+  },
+  {
+   "match": [
+    "zz plant",
+    "zamioculcas"
+   ],
+   "nom": "Plante ZZ",
+   "scientifique": "Zamioculcas zamiifolia",
+   "famille": "Aracées",
+   "origine": "Afrique de l'Est",
+   "toxique_chat": true,
+   "toxicite": "Oxalate de calcium : irritation de la bouche et de la peau.",
+   "indice": "Tiges arquées portant des folioles ovales, épaisses et très brillantes.",
+   "fait": "Ses rhizomes en forme de pomme de terre stockent l'eau pendant des mois."
+  }
+ ]
+}

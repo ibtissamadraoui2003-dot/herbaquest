@@ -1,0 +1,25 @@
+# Environnement Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Données (licence non commerciale : ne pas redistribuer) et archives
+data/
+cache/
+herbaquest_out/
+*.zip
+
+# Modèles : on ne garde que celui de la démo (les autres se régénèrent avec le notebook)
+app/export/*
+!app/export/model.tflite
+!app/export/class_meta.json
+
+# Fichiers temporaires LaTeX
+*.aux
+*.log
+*.out
+*.synctex.gz

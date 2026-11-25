@@ -1,0 +1,9 @@
+gradio>=4.44
+# Gradio 4 (seule version possible avec Python 3.9) ne fonctionne pas avec les versions récentes de ces deux bibliothèques :
+huggingface_hub<1.0
+pydantic<2.11
+numpy
+pillow
+# Un seul des deux suffit pour faire tourner le modèle :
+ai-edge-litert        # interpréteur TFLite léger (Linux/macOS)
+# tensorflow          # à utiliser sous Windows, ou si ai-edge-litert ne s'installe pas

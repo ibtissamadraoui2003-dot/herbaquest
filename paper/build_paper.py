@@ -1,0 +1,912 @@
+"""Génère paper.tex (version longue) : les tableaux chiffrés sont construits depuis results.json."""
+import json, sys
+from pathlib import Path
+
+R = json.load(open(sys.argv[1], encoding="utf-8"))
+OUT = Path(sys.argv[2])
+res, rob = R["results"], R["robustness"]
+ORDER = ["efficientnetb0", "resnet50v2", "mobilenetv2", "cnn_scratch"]
+NAME = {"efficientnetb0": "EfficientNetB0", "resnet50v2": "ResNet50V2", "mobilenetv2": "MobileNetV2", "cnn_scratch": "CNN de référence"}
+
+
+def p(x, d=1):  # pourcentage, virgule décimale
+    return f"{100 * x:.{d}f}".replace(".", "{,}")
+
+
+def n(x, d=1):
+    return f"{x:.{d}f}".replace(".", "{,}")
+
+
+def bold(cells, on):
+    return [f"\\textbf{{{c}}}" for c in cells] if on else cells
+
+
+def row(cells):
+    return " & ".join(cells) + r" \\"
+
+
+# ---------------- tableaux générés ----------------
+T_RESULTS = "\n".join(row(bold([NAME[m], n(res[m]["params_M"]), f"{p(res[m]['accuracy'])} [{p(res[m]['ci_low'])} ; {p(res[m]['ci_high'])}]",
+                                 p(res[m]["balanced_acc"]), p(res[m]["f1_macro"]), p(res[m]["top3"]), n(res[m]["auc_macro"], 3)], m == ORDER[0]))
+                      for m in ORDER)
+T_COST = "\n".join(row(bold([NAME[m], n(res[m]["keras_MB"]), n(res[m]["tflite_MB"]), n(res[m]["cpu_ms"]), n(res[m]["gpu_ms"], 2),
+                              p(res[m]["tflite_acc"]), n(res[m]["train_min"])], m == ORDER[0])) for m in ORDER)
+q = R["quant"]
+T_COST += "\n" + row([r"EfficientNetB0 (8 bits)", "--", n(q["tflite_MB"]), n(q["cpu_ms"]), "--", p(q["tflite_acc"]), "--"])
+CORR = ["Sous-exposition", "Surexposition", "Flou", "Rotation", "Bruit"]
+ROBKEY = {"efficientnetb0": "EfficientNetB0", "resnet50v2": "ResNet50V2", "mobilenetv2": "MobileNetV2", "cnn_scratch": "CNN de référence"}
+T_ROB = "\n".join(row(bold([NAME[m], p(rob[ROBKEY[m]]["accuracy propre"])] + [p(rob[ROBKEY[m]][c]) for c in CORR]
+                           + [p(rob[ROBKEY[m]]["accuracy moyenne dégradée"]), p(rob[ROBKEY[m]]["perte relative"])], m == ORDER[0]))
+                  for m in ORDER)
+ab, ra, rs = R["ablation"], rob["Ablation : avec augmentation"], rob["Ablation : sans augmentation"]
+T_ABL = "\n".join([
+    row(["Avec augmentation", p(ab["avec_aug"]["train_acc"]), p(ab["avec_aug"]["val_acc"]), p(ab["avec_aug"]["écart train − val"]),
+         p(ra["accuracy propre"]), p(ra["accuracy moyenne dégradée"]), p(ra["perte relative"])]),
+    row(["Sans augmentation", p(ab["sans_aug"]["train_acc"]), p(ab["sans_aug"]["val_acc"]), p(ab["sans_aug"]["écart train − val"]),
+         p(rs["accuracy propre"]), p(rs["accuracy moyenne dégradée"]), p(rs["perte relative"])])])
+g = R["game"]
+T_GAME = "\n".join([
+    row([r"Carte débloquée", r"$\geq " + n(g["t_high"], 2) + "$", p(g["share_card"]), p(g["acc_card"]) + r"\,\% de cartes justes"]),
+    row([r"Quiz d'observation", r"$[" + n(g["t_low"], 2) + r" ; " + n(g["t_high"], 2) + r"[$", p(g["share_quiz"]), p(g["top3_quiz"]) + r"\,\% avec la bonne espèce dans le top-3"]),
+    row([r"Nouveau scan", r"$< " + n(g["t_low"], 2) + "$", p(g["share_rescan"], 2), r"1 image sur \nTest{}"])])
+
+TEX = r"""% =====================================================================================
+% HerbaQuest — papier scientifique (version longue, double colonne, gabarit IEEE)
+% Ibtissam Draoui, Aya Laazizi, Majda Bakhari — Master IADAIG, ENS de Fès (USMBA)
+%
+% COMPILATION (Overleaf : New Project > Upload Project ; compilateur pdfLaTeX)
+%   Le dossier paper_assets/ (produit par le notebook) contient les figures et
+%   results_macros.tex : les chiffres du texte en sont lus automatiquement.
+%   Les tableaux détaillés ont été générés depuis results.json (build_paper.py).
+% =====================================================================================
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx,booktabs,xcolor,amsmath,amssymb,cite,url,tabularx,array}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,calc}
+\graphicspath{{paper_assets/}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\newcommand{\todo}{\textcolor{red}{\textbf{??}}}
+% ---- Valeurs par défaut, remplacées par paper_assets/results_macros.tex --------------
+\newcommand{\nFiles}{\todo}\newcommand{\nClean}{\todo}\newcommand{\nRemoved}{\todo}
+\newcommand{\nClasses}{47}\newcommand{\imbalance}{\todo}\newcommand{\nDup}{\todo}
+\newcommand{\nConflict}{\todo}\newcommand{\nTrain}{\todo}\newcommand{\nVal}{\todo}
+\newcommand{\nTest}{\todo}\newcommand{\knnBaseline}{\todo}\newcommand{\bestModel}{\todo}
+\newcommand{\runnerUp}{\todo}\newcommand{\bestAcc}{\todo}\newcommand{\bestCiLow}{\todo}
+\newcommand{\bestCiHigh}{\todo}\newcommand{\bestF}{\todo}\newcommand{\bestTop}{\todo}
+\newcommand{\bestAuc}{\todo}\newcommand{\bestCpu}{\todo}\newcommand{\bestSize}{\todo}
+\newcommand{\scratchAcc}{\todo}\newcommand{\mcnemarP}{\todo}\newcommand{\tempT}{\todo}
+\newcommand{\eceBefore}{\todo}\newcommand{\eceAfter}{\todo}\newcommand{\thrHigh}{\todo}
+\newcommand{\thrLow}{\todo}\newcommand{\shareCard}{\todo}\newcommand{\accCard}{\todo}
+\newcommand{\shareQuiz}{\todo}\newcommand{\topQuiz}{\todo}\newcommand{\shareRescan}{\todo}
+\newcommand{\robBest}{\todo}\newcommand{\ablAugVal}{\todo}\newcommand{\ablNoAugVal}{\todo}
+\newcommand{\ablAugRob}{\todo}\newcommand{\ablNoAugRob}{\todo}\newcommand{\quantSize}{\todo}
+\newcommand{\quantAcc}{\todo}\newcommand{\hpLr}{\todo}\newcommand{\hpDropout}{\todo}
+\newcommand{\hpDense}{\todo}\newcommand{\hpSmooth}{\todo}\newcommand{\resultsRows}{}
+\InputIfFileExists{paper_assets/results_macros.tex}{}{}
+
+% ---- Figure avec repli si le fichier n'existe pas encore ----------------------------
+\newcommand{\fig}[3]{% {fichier}{largeur}{hauteur du cadre de repli}
+  \IfFileExists{paper_assets/#1.pdf}{\includegraphics[width=#2]{#1.pdf}}%
+  {\fbox{\parbox[c][#3][c]{0.95\dimexpr#2\relax}{\centering\footnotesize\texttt{\detokenize{#1}.pdf}\\(générée par le notebook)}}}}
+
+\begin{document}
+
+\title{HerbaQuest : reconnaissance de plantes par transfert d'apprentissage\\pour une réalité augmentée éducative et ludique}
+
+\author{\IEEEauthorblockN{Ibtissam Draoui, Aya Laazizi et Majda Bakhari}
+\IEEEauthorblockA{Master Ingénierie \& Analytique des Données Appliquées à l'Industrie du Gaming (IADAIG)\\
+École Normale Supérieure de Fès, Université Sidi Mohamed Ben Abdellah, Maroc\\
+Module : Projets de Deep Learning, 2026--2027}}
+
+\maketitle
+
+\begin{abstract}
+Nous étudions la reconnaissance automatique de \nClasses{} espèces de plantes d'intérieur, brique centrale d'HerbaQuest, une application éducative qui transforme chaque photo de plante en carte à collectionner. Au-delà de la précision, un usage mobile impose trois exigences rarement évaluées ensemble : la robustesse aux conditions de prise de vue, la latence embarquée et la fiabilité de la confiance annoncée. Nous comparons un CNN entraîné de zéro à trois modèles pré-entraînés sur ImageNet (MobileNetV2, ResNet50V2, EfficientNetB0) selon un protocole unique : audit et dédoublonnage des données avant tout découpage, recherche bayésienne d'hyperparamètres, transfert en deux phases, puis évaluation par tests statistiques, dégradations simulées, Grad-CAM et calibration. EfficientNetB0 atteint \bestAcc\,\% d'accuracy et \bestF\,\% de F1 macro sur \nTest{} images de test. Il n'est pas significativement plus précis que ResNet50V2 (test de McNemar, $p = \mcnemarP$), mais il est 4,6 fois plus rapide et 5,5 fois plus léger. Après mise à l'échelle en température, l'erreur de calibration passe de \eceBefore\,\% à \eceAfter\,\%, et la confiance du modèle pilote une mécanique de jeu à trois issues : \shareCard\,\% des scans débloquent une carte, avec \accCard\,\% d'identifications justes.
+\end{abstract}
+
+\begin{IEEEkeywords}
+classification d'images, réseaux convolutifs, transfert d'apprentissage, calibration, robustesse, Grad-CAM, réalité augmentée, ludification
+\end{IEEEkeywords}
+
+% =====================================================================================
+\section{Introduction et problématique}
+% =====================================================================================
+\subsection{Contexte}
+La réalité augmentée (RA) superpose des informations numériques au monde réel. En éducation, elle est associée à une meilleure motivation et à de meilleurs apprentissages, mais aussi à des difficultés d'usage et à des problèmes techniques~\cite{akcayir2017}. La ludification, c'est-à-dire l'usage d'éléments de conception de jeu hors du jeu~\cite{deterding2011}, poursuit un but voisin ; une revue des études empiriques conclut à des effets globalement positifs, qui dépendent du contexte et des utilisateurs~\cite{hamari2014}.
+
+Notre master étant orienté vers l'industrie du jeu vidéo, nous combinons les deux approches. HerbaQuest est une application dans laquelle l'élève photographie une plante, l'identifie et débloque une carte pédagogique : nom, famille botanique, origine, toxicité pour les animaux domestiques, indices de reconnaissance et anecdote. Chaque carte a une rareté et rapporte des points d'expérience ; une collection de \nClasses{} cartes est à compléter.
+
+\subsection{Problématique}
+Le maillon critique de cette application est le classifieur d'images. À la précision s'ajoutent trois exigences propres à l'usage mobile :
+\begin{itemize}
+\item \textbf{la robustesse} : une photo prise au téléphone est souvent floue, mal exposée ou inclinée ;
+\item \textbf{le coût} : le modèle doit être assez léger et rapide pour un appareil mobile ;
+\item \textbf{la confiance} : un modèle qui se trompe avec assurance enseigne une erreur ; sa confiance doit donc être fiable, et exploitée.
+\end{itemize}
+
+\subsection{Question de recherche et contributions}
+Nous posons la question suivante : \emph{quel modèle offre le meilleur compromis entre précision, robustesse et latence pour une application de RA éducative sur mobile, et comment rendre son incertitude utile plutôt que nuisible ?} Nos contributions sont :
+\begin{enumerate}
+\item un audit image par image du jeu de données, qui écarte les doublons et les étiquettes contradictoires \emph{avant} le découpage, pour éviter toute fuite entre entraînement et test ;
+\item une comparaison de quatre architectures sous un protocole identique, avec intervalles de confiance et test statistique ;
+\item une évaluation orientée usage : 25 conditions d'image dégradées, latence mesurée en TensorFlow Lite, calibration et explicabilité ;
+\item une mécanique de jeu dont les seuils sont déduits de la calibration, et non fixés arbitrairement ;
+\item une application de démonstration fonctionnelle et un notebook entièrement reproductible.
+\end{enumerate}
+
+\subsection{Organisation du papier}
+La section~\ref{sec:sota} présente l'état de l'art. Les sections~\ref{sec:bg-info} à~\ref{sec:bg-math} posent le cadre : fondements informatiques, workflow et pipeline, méthodologie, puis fondements mathématiques. Les sections~\ref{sec:data} à~\ref{sec:eval} suivent le plan expérimental : données, prétraitement, modélisation, évaluation. La section~\ref{sec:disc} discute les résultats et la section~\ref{sec:concl} conclut.
+
+% =====================================================================================
+\section{État de l'art}\label{sec:sota}
+% =====================================================================================
+\subsection{Identification de plantes par vision artificielle}
+L'identification automatique d'espèces végétales est un problème ancien de vision par ordinateur, dont Wäldchen et Mäder proposent une revue systématique~\cite{waldchen2018}. Le jeu de données Oxford 102 Flowers~\cite{nilsback2008} en est devenu une référence. Depuis l'essor des réseaux convolutifs profonds~\cite{krizhevsky2012}, l'apprentissage de bout en bout a remplacé les descripteurs conçus à la main. Mohanty et al.~\cite{mohanty2016} ont montré l'intérêt et la limite de cette approche pour les maladies des plantes : une accuracy de 99,35\,\% sur des images du même domaine, qui chute à 31,4\,\% sur des images provenant d'autres sources. Ce résultat motive nos tests de robustesse.
+
+\subsection{Comparaisons récentes d'architectures}
+Plusieurs travaux récents comparent les mêmes familles de modèles que nous. Sur des nervures de feuilles (15 espèces), EfficientNetB0 dépasse MobileNetV2 et ResNet50, avec 94,67\,\% d'accuracy en test~\cite{bharadwaj2025}. Pour dix plantes médicinales thaïlandaises, EfficientNet-B3 et MobileNetV2 atteignent tous deux 93,4\,\%, MobileNetV2 étant le plus léger~\cite{valuvanathorn2026}. Pour des plantes invasives, des modèles MobileNetV2 et ResNet50V2 en transfert dépassent 94\,\% d'accuracy top-5~\cite{yao2025}.
+
+\subsection{Applications mobiles et réalité augmentée}
+Côté applications, MobileNetV2 domine. \emph{Plant Recogniser} reconnaît 143 espèces hors ligne sur Android grâce à un MobileNetV2 quantifié en entiers 8 bits, avec 80,37\,\% d'accuracy top-1~\cite{foamete2025}. \emph{Flower Identifier} associe un MobileNetV2 entraîné sur Oxford 102 Flowers à une interface de RA, avec plus de 86\,\% d'accuracy de validation~\cite{bolohan2025}. \emph{Farm and Learn} combine RA, un détecteur d'objets léger (YOLOv11n), un mini-jeu et des quiz pour l'éducation agricole des enfants ; les auteurs notent que les récompenses de type badges n'y sont pas implémentées~\cite{desilva2026}.
+
+\subsection{Calibration, robustesse et classification sélective}
+Guo et al.~\cite{guo2017} ont montré que les réseaux modernes sont souvent mal calibrés et que la mise à l'échelle en température corrige efficacement ce défaut. Hendrycks et Dietterich~\cite{hendrycks2019} ont standardisé l'évaluation de la robustesse aux corruptions courantes (bruit, flou, météo, numérique). La classification sélective~\cite{geifman2017} formalise le fait de ne répondre que lorsque la confiance est suffisante, pour garantir un taux d'erreur cible.
+
+\subsection{Positionnement}
+Le Tableau~\ref{tab:sota} résume ces travaux. À notre connaissance, aucun n'évalue ensemble précision, robustesse, calibration et latence, et aucun ne relie l'incertitude du modèle à une mécanique de jeu. C'est l'écart que vise HerbaQuest.
+
+\begin{table}[!htb]
+\caption{Travaux récents en reconnaissance de plantes (EffNet : EfficientNet).}
+\label{tab:sota}
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}p{2.35cm}Lr@{}}
+\toprule
+Réf. & Contexte & Modèle(s) & Résultat\\
+\midrule
+\cite{bharadwaj2025} & 15 espèces, nervures & ResNet50, MobileNetV2, EffNet-B0 & 94,7\,\%\\
+\cite{valuvanathorn2026} & 10 plantes médicinales & DenseNet-121, EffNet-B3, MobileNetV2 & 93,4\,\%\\
+\cite{yao2025} & Plantes invasives & CNN, MobileNetV2, ResNet50V2 & top-5 ${>}94\,\%$\\
+\cite{foamete2025} & 143 espèces, Android & MobileNetV2 int8 (TFLite) & 80,4\,\%\\
+\cite{bolohan2025} & Oxford 102, RA & MobileNetV2 & ${>}86\,\%$ (val.)\\
+\cite{desilva2026} & RA éducative, jeu & YOLOv11n (détection) & prototype\\
+\midrule
+Nous & 47 espèces d'intérieur & 4 modèles, calibration, jeu & \bestAcc\,\%\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================================
+\section{Fondements informatiques}\label{sec:bg-info}
+% =====================================================================================
+\subsection{Réseaux de neurones convolutifs}
+Un réseau convolutif (CNN)~\cite{lecun1998} traite une image par une succession de couches. Une \emph{couche de convolution} fait glisser de petits filtres (par exemple $3{\times}3$) sur l'image et produit des cartes d'activation ; les premières couches détectent des contours et des textures, les suivantes des motifs de plus en plus abstraits (nervures, pétales, formes de feuille). Une \emph{non-linéarité} (ReLU) suit chaque convolution. La \emph{normalisation par lot}~\cite{ioffe2015} stabilise l'apprentissage, le \emph{regroupement} (pooling) réduit la résolution, et le \emph{dropout}~\cite{srivastava2014} désactive aléatoirement des neurones pendant l'entraînement pour limiter le surapprentissage. En fin de réseau, un regroupement global moyen (GAP) résume chaque carte d'activation par un nombre, puis une couche dense produit un score (logit) par classe, transformé en probabilités par la fonction softmax.
+
+\subsection{Transfert d'apprentissage}
+Entraîner un CNN profond demande beaucoup d'images. Le transfert d'apprentissage~\cite{pan2010} réutilise un réseau déjà entraîné sur un grand jeu de données, ici ImageNet~\cite{deng2009} (1,2 million d'images, 1\,000 classes). Ses couches basses fournissent des descripteurs génériques et ses couches hautes des descripteurs plus spécifiques à la tâche d'origine~\cite{yosinski2014}. On remplace donc la tête de classification, on l'entraîne sur les nouvelles classes, puis on peut ajuster finement (\emph{fine-tuning}) les couches hautes.
+
+\subsection{Architectures étudiées}
+\textbf{CNN de référence.} Réseau conçu par nous, entraîné de zéro : cinq blocs de deux convolutions $3{\times}3$ (32, 64, 128, 256 et 256 filtres), chacune suivie d'une normalisation par lot et d'une ReLU, avec un regroupement maximal après les quatre premiers blocs. Il mesure ce qu'apporte le pré-entraînement.
+
+\textbf{MobileNetV2}~\cite{howard2017,sandler2018}. Conçu pour l'embarqué, il remplace la convolution standard par une convolution \emph{séparable en profondeur} : un filtre par canal, puis une combinaison $1{\times}1$ des canaux, ce qui divise le coût par 8 à 9 pour des noyaux $3{\times}3$ (section~\ref{sec:bg-math}). Ses blocs \emph{résiduels inversés} élargissent puis rétrécissent les canaux, avec un goulot d'étranglement linéaire.
+
+\textbf{ResNet50V2}~\cite{he2016resnet,he2016}. Réseau de 50 couches à \emph{connexions résiduelles} : chaque bloc apprend une correction $\mathcal{F}(x)$ ajoutée à son entrée, ce qui permet d'entraîner des réseaux très profonds. La version~2 place la normalisation et l'activation avant la convolution (pré-activation).
+
+\textbf{EfficientNetB0}~\cite{tan2019}. Modèle de base d'une famille obtenue par \emph{mise à l'échelle composée} : profondeur, largeur et résolution sont agrandies ensemble selon des coefficients fixés. Il utilise des blocs MBConv, proches de ceux de MobileNetV2, avec un mécanisme d'attention par canal (\emph{squeeze-and-excitation}).
+
+Le Tableau~\ref{tab:archi} résume ces architectures avec notre tête de classification à \nClasses{} classes.
+
+\begin{table}[!htb]
+\caption{Architectures comparées (paramètres avec notre tête à 47 classes).}
+\label{tab:archi}
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}lrLL@{}}
+\toprule
+Modèle & Par. (M) & Mécanisme clé & Entrée attendue\\
+\midrule
+CNN de référence & 2,4 & convolutions $3{\times}3$ classiques & pixels / 255\\
+MobileNetV2 & 2,6 & convolutions séparables, résidus inversés & $[-1, 1]$\\
+ResNet50V2 & 24,1 & connexions résiduelles, pré-activation & $[-1, 1]$\\
+EfficientNetB0 & 4,4 & mise à l'échelle composée, MBConv + SE & normalisation interne\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Optimisation et régularisation}
+Les poids sont appris par descente de gradient avec l'optimiseur Adam~\cite{kingma2015}. Trois techniques limitent le surapprentissage et les biais : le \emph{lissage d'étiquettes}~\cite{szegedy2016,muller2019}, qui empêche le modèle de viser une probabilité de 100\,\% ; la \emph{pondération des classes}, qui compense le déséquilibre ; l'\emph{arrêt anticipé}, qui interrompt l'entraînement quand l'accuracy de validation cesse de progresser et restaure les meilleurs poids.
+
+\subsection{Recherche d'hyperparamètres}
+Plutôt qu'une grille, nous utilisons l'estimateur à arbre de Parzen (TPE)~\cite{bergstra2011}, une méthode bayésienne qui concentre les essais dans les zones prometteuses, implémentée dans Optuna~\cite{akiba2019}. L'élagage médian arrête tôt un essai nettement moins bon que la médiane des précédents.
+
+\subsection{Déploiement embarqué et explicabilité}
+TensorFlow Lite convertit un modèle Keras dans un format compact exécutable sur téléphone. La quantification~\cite{jacob2018} réduit la précision des poids de 32 à 8~bits ; nous utilisons la quantification dynamique, qui ne porte que sur les poids et ne demande aucune donnée de calibration. Pour l'explicabilité, Grad-CAM~\cite{selvaraju2017} produit une carte de chaleur des régions de l'image qui ont fait pencher la décision.
+
+\subsection{Environnement logiciel}
+Le Tableau~\ref{tab:env} liste les outils utilisés. L'entraînement a été fait sur un GPU NVIDIA T4 gratuit de Kaggle ; l'application de démonstration tourne sur un ordinateur portable sans GPU.
+
+\begin{table}[!htb]
+\caption{Environnement logiciel.}
+\label{tab:env}
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}lL@{}}
+\toprule
+Outil & Usage\\
+\midrule
+Python 3.13 & langage du notebook\\
+TensorFlow 2.21, Keras 3.13 & modèles, pipeline \texttt{tf.data}, export TFLite\\
+NumPy 2.1, pandas 2.3, SciPy & calcul, tableaux, tests statistiques\\
+scikit-learn & découpage stratifié, métriques, $k$-NN, t-SNE\\
+Matplotlib, Seaborn & figures (charte graphique commune)\\
+Optuna & recherche d'hyperparamètres\\
+Gradio, LiteRT & application de démonstration, inférence TFLite\\
+Kaggle (GPU T4) & exécution du notebook\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================================
+\section{Workflow et pipeline}\label{sec:workflow}
+% =====================================================================================
+\subsection{Vue d'ensemble}
+La Fig.~\ref{fig:workflow} présente le workflow complet en cinq phases ; chaque phase consomme les sorties de la précédente.
+
+\begin{figure*}[!t]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  head/.style={draw=#1!70!black, fill=#1!25, rounded corners=2pt, minimum width=33.5mm, minimum height=6mm, font=\footnotesize\bfseries, align=center},
+  step/.style={draw=#1!60!black, fill=#1!6, rounded corners=1.5pt, text width=32mm, align=left, inner sep=2.2pt, font=\scriptsize},
+  arr/.style={-{Stealth[length=2mm]}, thick, black!55}]
+\def\col#1#2#3#4#5#6#7{%
+  \node[head=#2] (h#1) at (#1*36.6mm,0) {#3};
+  \node[step=#2, below=1.6mm of h#1] (s#1a) {#4};
+  \node[step=#2, below=1.2mm of s#1a] (s#1b) {#5};
+  \node[step=#2, below=1.2mm of s#1b] (s#1c) {#6};
+  \node[step=#2, below=1.2mm of s#1c] (s#1d) {#7};}
+\col{0}{gray}{1. Données et EDA}
+  {\textbf{Entrée :} Kaggle \emph{House Plant Species}, \nFiles{} images, \nClasses{} classes}
+  {Audit de chaque image : dimensions, luminosité, contraste, netteté, empreintes MD5 et dHash}
+  {Constats : déséquilibre $\times$\imbalance, \nDup{} doublons, plancher $k$-NN \knnBaseline\,\%}
+  {\textbf{Sortie :} \texttt{eda\_metadata.csv}, cache d'images 256\,px}
+\col{1}{cyan}{2. Prétraitement}
+  {Nettoyage : petit côté $<$ 96\,px, format hors $[0{,}4 ; 2{,}5]$, doublons}
+  {Découpage stratifié 70/15/15 \emph{après} dédoublonnage : \nTrain{} / \nVal{} / \nTest{}}
+  {Recadrage 224\,px, 7 augmentations, poids de classes}
+  {\textbf{Sortie :} trois flux \texttt{tf.data} (entraînement, validation, test)}
+\col{2}{blue}{3. Modélisation}
+  {4 modèles : CNN de zéro, MobileNetV2, ResNet50V2, EfficientNetB0}
+  {Optuna : 12 essais TPE, évalués sur la validation}
+  {Phase 1 : tête seule ; phase 2 : 30\,\% des couches hautes dégelées}
+  {\textbf{Sortie :} 4 modèles \texttt{.keras} + 2 modèles d'ablation}
+\col{3}{orange}{4. Évaluation}
+  {Test utilisé une seule fois : accuracy, F1 macro, top-3, AUC, IC bootstrap, McNemar}
+  {Analyse par classe, confusions, Grad-CAM}
+  {Robustesse : 5 dégradations $\times$ 5 niveaux ; calibration et seuils du jeu}
+  {\textbf{Sortie :} \texttt{results.json}, figures, chiffres du papier}
+\col{4}{green}{5. Déploiement}
+  {Export TensorFlow Lite (32 et 8 bits), latence sur 1 cœur CPU}
+  {\texttt{class\_meta.json} : classes, rareté, température, seuils}
+  {Application Gradio : carte, quiz, nouveau scan, collection}
+  {\textbf{Sortie :} démonstration utilisable par un élève}
+\foreach \i/\j in {0/1,1/2,2/3,3/4} \draw[arr] (h\i.east) -- (h\j.west);
+\end{tikzpicture}
+\caption{Workflow complet du projet en cinq phases. Le jeu de validation sert au réglage, à l'arrêt anticipé, à la calibration et au choix des seuils ; le jeu de test n'est consulté qu'une fois, en phase~4.}
+\label{fig:workflow}
+\end{figure*}
+
+\textbf{Phase 1 -- Données et exploration.} Le notebook indexe les fichiers du jeu de données, puis lit chaque image une seule fois pour mesurer sa qualité et en enregistrer une copie normalisée de 256\,px (le \emph{cache}). Décoder les originaux à chaque époque dominerait sinon le temps d'entraînement. Les mesures sont sauvegardées dans un fichier CSV et alimentent toutes les analyses de la section~\ref{sec:data}.
+
+\textbf{Phase 2 -- Prétraitement.} Chaque défaut détecté en phase~1 reçoit une correction (Tableau~\ref{tab:eda2pre}). Les données sont ensuite découpées, et trois flux de données sont construits (Fig.~\ref{fig:datapipe}).
+
+\textbf{Phase 3 -- Modélisation.} Une étude d'ablation mesure l'effet de l'augmentation, Optuna choisit les hyperparamètres de la tête, puis les quatre modèles sont entraînés selon le même protocole (Fig.~\ref{fig:train}).
+
+\textbf{Phase 4 -- Évaluation.} Les logits des modèles sont calculés une fois sur la validation et le test, puis réutilisés par toutes les analyses : métriques, tests statistiques, matrice de confusion, Grad-CAM, robustesse, calibration et seuils du jeu.
+
+\textbf{Phase 5 -- Déploiement.} Le meilleur modèle est converti en TensorFlow Lite. Un fichier de métadonnées transmet à l'application les noms des classes, la rareté de chaque carte, la température et les seuils. L'application applique exactement le même prétraitement que le notebook (Fig.~\ref{fig:game}).
+
+\subsection{Pipeline de données}
+La Fig.~\ref{fig:datapipe} détaille le flux \texttt{tf.data}. L'entraînement et l'évaluation partagent le cache et le décodage, puis divergent : seules les images d'entraînement sont augmentées. Les augmentations photométriques sont appliquées image par image ; les augmentations géométriques (rotation, zoom) le sont par lot, pour profiter du GPU. Les étiquettes sont encodées en \emph{one-hot}, et chaque image d'entraînement reçoit le poids de sa classe. Le chargement du lot suivant est anticipé (\emph{prefetch}) pendant le calcul du lot courant.
+
+\begin{figure*}[!t]
+\centering
+\begin{tikzpicture}[font=\scriptsize, node distance=3.2mm,
+  b/.style={draw=#1!60!black, fill=#1!8, rounded corners=1.5pt, text width=17.5mm, align=center, minimum height=10mm, inner sep=2pt},
+  b/.default=gray, arr/.style={-{Stealth[length=1.7mm]}, black!60}]
+\node[b] (src) at (0,0) {Cache JPEG\\ 256${\times}$256\\ + décodage};
+\node[b=blue, right=7mm of src, yshift=7.5mm] (t1) {Recadrage aléatoire 224};
+\node[b=blue, right=of t1] (t2) {Miroir horizontal\\ ($p=0{,}5$)};
+\node[b=blue, right=of t2] (t3) {Luminosité $\pm$15\,\%, contraste, saturation};
+\node[b=blue, right=of t3] (t4) {Lots de 32 images};
+\node[b=blue, right=of t4] (t5) {Rotation $\pm$22°, zoom $-$15/+10\,\%};
+\node[b=blue, right=of t5] (t6) {One-hot + poids de classe};
+\node[b=orange, right=7mm of src, yshift=-7.5mm] (e1) {Recadrage central 224};
+\node[b=orange, right=of e1] (e2) {Lots de 32 images};
+\node[b=orange, right=of e2] (e3) {One-hot};
+\node[b=green, right=7mm of t6, yshift=-7.5mm, text width=19mm] (m) {Prefetch $\rightarrow$ modèle\\ (mise à l'échelle des pixels intégrée)};
+\draw[arr] (src.east) -- ++(2.5mm,0) |- (t1.west);
+\draw[arr] (src.east) -- ++(2.5mm,0) |- (e1.west);
+\foreach \u/\v in {t1/t2,t2/t3,t3/t4,t4/t5,t5/t6,e1/e2,e2/e3} \draw[arr] (\u) -- (\v);
+\draw[arr] (t6.east) -- ++(2mm,0) |- (m.west);
+\draw[arr] (e3.east) -- (e3.east -| m.west);
+\node[font=\scriptsize\itshape, text=blue!60!black, above=0.5mm of t3] {entraînement};
+\node[font=\scriptsize\itshape, text=orange!70!black, below=0.5mm of e2] {validation et test};
+\end{tikzpicture}
+\caption{Pipeline de données \texttt{tf.data}. En haut, le flux d'entraînement avec augmentations ; en bas, le flux d'évaluation, déterministe. La normalisation des pixels se fait dans le modèle, si bien que l'application lui transmet directement des pixels bruts (0--255).}
+\label{fig:datapipe}
+\end{figure*}
+
+\subsection{Pipeline d'entraînement}
+La Fig.~\ref{fig:train} montre le modèle commun aux trois réseaux pré-entraînés et les deux phases d'entraînement. En phase~1, seule la tête (en orange) apprend : une tête initialisée au hasard enverrait sinon de grands gradients qui détruiraient les poids ImageNet. En phase~2, les 30\,\% de couches les plus hautes de la base (en bleu) sont dégelées avec un taux d'apprentissage cent fois plus faible ; les couches basses (en gris) et toutes les normalisations par lot restent gelées.
+
+\begin{figure}[!htb]
+\centering
+\begin{tikzpicture}[font=\scriptsize, node distance=1.4mm,
+  l/.style={draw=#1!60!black, fill=#1!12, rounded corners=1.5pt, minimum width=44mm, minimum height=5mm, align=center},
+  l/.default=gray, arr/.style={-{Stealth[length=1.5mm]}, black!55}]
+\node[l] (in) {Image $224{\times}224{\times}3$ (pixels 0--255)};
+\node[l, below=of in] (sc) {Mise à l'échelle des pixels};
+\node[l, below=of sc, minimum height=8mm] (lo) {Base pré-entraînée : couches basses\\ \textit{gelées dans les deux phases}};
+\node[l=blue, below=of lo, minimum height=8mm] (hi) {Base : 30\,\% des couches hautes\\ \textit{gelées en phase 1, ajustées en phase 2}};
+\node[l=orange, below=of hi] (gap) {Regroupement global moyen (GAP)};
+\node[l=orange, below=of gap] (d1) {Dense \hpDense{} + ReLU};
+\node[l=orange, below=of d1] (dr) {Dropout \hpDropout{}};
+\node[l=orange, below=of dr] (lg) {Dense \nClasses{} (logits $z$)};
+\node[l, below=of lg] (sm) {Softmax $\rightarrow$ probabilités $p$};
+\foreach \u/\v in {in/sc,sc/lo,lo/hi,hi/gap,gap/d1,d1/dr,dr/lg,lg/sm} \draw[arr] (\u) -- (\v);
+\node[right=2mm of hi, align=left, font=\scriptsize] {Phase 2 :\\ lr $10^{-5}$,\\ 12 époques max.};
+\node[right=2mm of d1, align=left, font=\scriptsize] {Phase 1 :\\ lr $\hpLr$,\\ 8 époques max.};
+\end{tikzpicture}
+\caption{Modèle et transfert en deux phases. Gris : toujours gelé ; bleu : ajusté en phase~2 ; orange : appris dès la phase~1.}
+\label{fig:train}
+\end{figure}
+
+\subsection{Pipeline d'inférence et de jeu}
+Dans l'application (Fig.~\ref{fig:game}), la photo subit le même prétraitement que les images d'évaluation. Le modèle TFLite produit des probabilités, recalibrées par la température $T$. La plus grande probabilité, $\max \hat p$, décide de l'issue : au-dessus du seuil haut, la carte est débloquée et une question bonus est posée ; entre les deux seuils, l'élève départage les trois espèces les plus probables à l'aide d'indices d'observation, et la carte est ajoutée « à confirmer » ; sous le seuil bas, l'application demande un nouveau scan.
+
+\begin{figure}[!htb]
+\centering
+\begin{tikzpicture}[font=\scriptsize, node distance=3mm,
+  p/.style={draw=gray!60!black, fill=gray!8, rounded corners=1.5pt, text width=19mm, align=center, minimum height=8mm},
+  o/.style={draw=#1!60!black, fill=#1!12, rounded corners=1.5pt, text width=22mm, align=center, minimum height=8mm},
+  d/.style={diamond, aspect=2.1, draw=blue!60!black, fill=blue!6, inner sep=0.5pt, align=center},
+  arr/.style={-{Stealth[length=1.5mm]}, black!60}]
+\node[p] (ph) {Photo de l'élève};
+\node[p, right=of ph] (pre) {256\,px puis recadrage 224};
+\node[p, right=of pre] (mo) {Modèle TFLite, $\hat p = \mathrm{softmax}(z/T)$};
+\node[d, below=5mm of mo] (d1) {$\max \hat p \geq \thrHigh$ ?};
+\node[d, below=5mm of d1] (d2) {$\max \hat p \geq \thrLow$ ?};
+\node[o=green, left=6mm of d1] (c1) {Carte débloquée\\ + XP, question bonus};
+\node[o=orange, left=6mm of d2] (c2) {Quiz d'observation sur le top-3};
+\node[o=red, below=4mm of d2] (c3) {Nouveau scan demandé};
+\draw[arr] (ph) -- (pre); \draw[arr] (pre) -- (mo); \draw[arr] (mo) -- (d1);
+\draw[arr] (d1) -- node[above]{oui} (c1);
+\draw[arr] (d1) -- node[right]{non} (d2);
+\draw[arr] (d2) -- node[above]{oui} (c2);
+\draw[arr] (d2) -- node[right]{non} (c3);
+\end{tikzpicture}
+\caption{Pipeline d'inférence de l'application : la confiance calibrée choisit l'une des trois mécaniques de jeu.}
+\label{fig:game}
+\end{figure}
+
+\subsection{Artefacts produits}
+Le notebook produit automatiquement les fichiers du Tableau~\ref{tab:artefacts}. Les chiffres et les figures de ce papier sont lus dans ces fichiers : aucun résultat n'est recopié à la main.
+
+\begin{table}[!htb]
+\caption{Fichiers produits par le notebook.}
+\label{tab:artefacts}
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}lL@{}}
+\toprule
+Fichier & Contenu\\
+\midrule
+\texttt{eda\_metadata.csv} & mesures de chaque image (phase 1)\\
+\texttt{models/*.keras} & quatre modèles + deux modèles d'ablation\\
+\texttt{logits.npz} & logits de validation et de test de chaque modèle\\
+\texttt{results.json} & toutes les métriques, robustesse, calibration\\
+\texttt{export/*.tflite} & modèles embarqués (32 et 8 bits)\\
+\texttt{class\_meta.json} & classes, rareté, température, seuils du jeu\\
+\texttt{paper\_assets/} & figures PDF et chiffres de ce papier\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================================
+\section{Méthodologie}\label{sec:method}
+% =====================================================================================
+\subsection{Règles d'usage des données}
+Le découpage est stratifié : chaque sous-ensemble conserve les proportions de classes. Le jeu de validation sert à toutes les décisions (hyperparamètres, arrêt anticipé, température, seuils du jeu). Le jeu de test n'est utilisé qu'une fois, après que tous les choix sont figés ; ses résultats ne servent à rien d'autre qu'à les rapporter. Une assertion du notebook vérifie qu'aucune empreinte d'image n'est commune à l'entraînement et au test.
+
+\subsection{Protocole d'entraînement}
+Le Tableau~\ref{tab:train} détaille la configuration, identique pour les trois modèles pré-entraînés. Le CNN de référence, sans base à préserver, est entraîné en une seule phase plus longue, avec un taux d'apprentissage divisé par deux quand la perte de validation stagne.
+
+\begin{table}[!htb]
+\caption{Configuration d'entraînement.}
+\label{tab:train}
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}lL@{}}
+\toprule
+Paramètre & Valeur\\
+\midrule
+Entrée & $224{\times}224{\times}3$, lots de 32 images\\
+Optimiseur & Adam\\
+Perte & entropie croisée pondérée, lissage \hpSmooth{}\\
+Phase 1 (tête) & lr $\hpLr$ (Optuna), 8 époques max., base gelée\\
+Phase 2 (fine-tuning) & lr $10^{-5}$, 12 époques max., 30\,\% des couches hautes, normalisations par lot gelées\\
+CNN de référence & lr $10^{-3}$, 25 époques max., lr $\times 0{,}5$ si la perte stagne 2 époques\\
+Arrêt anticipé & accuracy de validation, patience 3 (5 pour le CNN), meilleurs poids restaurés\\
+Graine aléatoire & 42 (Python, NumPy, TensorFlow)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Recherche d'hyperparamètres}
+Optuna explore l'espace du Tableau~\ref{tab:optuna} en 12 essais de 4 époques chacun, sur MobileNetV2 (le plus rapide) avec la base gelée. L'objectif est la meilleure accuracy de validation. Les valeurs retenues sont ensuite appliquées aux têtes des trois modèles pré-entraînés. Ce choix, imposé par le budget de calcul gratuit, est une limite que nous discutons en section~\ref{sec:disc}.
+
+\begin{table}[!htb]
+\caption{Espace de recherche Optuna et valeurs retenues.}
+\label{tab:optuna}
+\centering\scriptsize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Hyperparamètre & Espace exploré & Retenu\\
+\midrule
+Taux d'apprentissage & $[10^{-4} ; 3\cdot10^{-3}]$, échelle log & $\hpLr$\\
+Dropout & $[0{,}1 ; 0{,}5]$ & \hpDropout{}\\
+Couche dense & $\{0, 128, 256\}$ unités & \hpDense{}\\
+Lissage d'étiquettes & $[0 ; 0{,}15]$ & \hpSmooth{}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Étude d'ablation}
+Pour isoler l'effet de l'augmentation, deux modèles MobileNetV2 sont entraînés (tête seule) avec exactement les mêmes hyperparamètres et le même nombre d'époques, l'un avec et l'autre sans augmentation. Ils sont comparés sur la validation, puis sur les images dégradées du protocole de robustesse.
+
+\subsection{Protocole d'évaluation}
+Sur le test, nous rapportons l'accuracy, l'accuracy équilibrée, le F1 macro, l'accuracy top-3 et l'AUC macro un-contre-tous (section~\ref{sec:bg-math}). L'intervalle de confiance à 95\,\% de l'accuracy est estimé par bootstrap~\cite{efron1979} (1\,000 rééchantillonnages). Les deux meilleurs modèles sont comparés par le test de McNemar~\cite{mcnemar1947,dietterich1998}, adapté à deux classifieurs évalués sur les mêmes images. L'analyse est complétée par la matrice de confusion, le F1 par classe et Grad-CAM.
+
+\subsection{Protocole de robustesse}
+Inspiré de~\cite{hendrycks2019}, il applique à 562 images de test (12 par classe au plus) cinq dégradations qui simulent une prise de vue au téléphone, chacune à cinq niveaux (Tableau~\ref{tab:corr}). Toutes les images dégradées sont classées par chacun des quatre modèles et des deux modèles d'ablation.
+
+\begin{table}[!htb]
+\caption{Dégradations appliquées, du niveau 1 au niveau 5.}
+\label{tab:corr}
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}lL@{}}
+\toprule
+Dégradation & Paramètre aux niveaux 1 $\rightarrow$ 5\\
+\midrule
+Sous-exposition & luminosité $\times$ 0,8 ; 0,65 ; 0,5 ; 0,35 ; 0,2\\
+Surexposition & luminosité $\times$ 1,2 ; 1,4 ; 1,6 ; 1,8 ; 2,0\\
+Flou & flou gaussien de rayon 0,5 ; 1 ; 1,5 ; 2,5 ; 4\,px\\
+Rotation & 5 ; 10 ; 15 ; 20 ; 30°\\
+Bruit & bruit gaussien d'écart-type 5 ; 10 ; 20 ; 35 ; 50 (sur 255)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Calibration et choix des seuils}
+La température $T$ est ajustée sur les logits de validation, par minimisation de la log-vraisemblance négative. La calibration est mesurée par l'erreur de calibration attendue (ECE) sur 15 tranches de confiance~\cite{naeini2015}. Deux seuils sont ensuite choisis sur la validation : le seuil haut est la plus petite confiance telle que les scans acceptés au-dessus soient justes à 95\,\% au moins ; le seuil bas, la plus petite confiance telle que le top-3 des scans acceptés contienne la bonne espèce dans 95\,\% des cas au moins. Les taux obtenus sont ensuite vérifiés sur le test.
+
+\subsection{Mesure embarquée}
+Chaque modèle est converti en TensorFlow Lite, puis exécuté sur un seul cœur de CPU, image par image, sur 300 images de test ; nous rapportons le temps moyen par image et l'accuracy du modèle converti. Le meilleur modèle est aussi exporté en version quantifiée. Ces latences, mesurées sur un serveur, servent à comparer les modèles entre eux, pas à prédire la latence absolue sur téléphone.
+
+\subsection{Reproductibilité}
+Tout le travail tient dans un notebook unique, documenté et exécutable sur Kaggle. Un mode d'essai (\texttt{QUICK\_RUN}) l'exécute en quelques minutes sur un sous-échantillon. Les graines sont fixées ; sur GPU, quelques opérations restent non déterministes, ce qui peut faire varier les résultats de quelques dixièmes de point.
+
+% =====================================================================================
+\section{Fondements mathématiques}\label{sec:bg-math}
+% =====================================================================================
+\subsection{Convolution et normalisation par lot}
+Une couche de convolution calcule, pour chaque filtre $f$ de taille $k{\times}k$ appliqué à une entrée $X$ à $C$ canaux :
+\begin{equation}
+Y_{f}(i,j) = b_f + \sum_{c=1}^{C}\sum_{u=1}^{k}\sum_{v=1}^{k} W_{f,c}(u,v)\, X_c(i+u, j+v).
+\end{equation}
+La normalisation par lot~\cite{ioffe2015} centre et réduit chaque activation sur le lot, puis la rééchelonne : $\hat x = \gamma\,(x-\mu_B)/\sqrt{\sigma_B^2+\epsilon} + \beta$.
+
+\subsection{Sortie et fonction de perte}
+Les logits $z \in \mathbb{R}^K$ ($K = \nClasses$) sont convertis en probabilités par la fonction softmax, $p_k = e^{z_k} / \sum_{j} e^{z_j}$. Nous minimisons une entropie croisée pondérée, à étiquettes lissées :
+\begin{equation}
+\mathcal{L} = -\frac{1}{N}\sum_{i=1}^{N} w_{y_i} \sum_{k=1}^{K} q_{ik} \log p_{ik},\qquad q_{ik} = (1-\varepsilon)\,\mathbf{1}[k = y_i] + \frac{\varepsilon}{K},
+\end{equation}
+où $\varepsilon$ est le lissage et $w_c = N / (K N_c)$ le poids de la classe $c$, qui compte $N_c$ images d'entraînement : une classe deux fois plus rare pèse deux fois plus.
+
+\subsection{Optimisation}
+Adam~\cite{kingma2015} met à jour chaque paramètre $\theta$ à partir de moyennes mobiles du gradient $g_t$ et de son carré :
+\begin{equation}
+\begin{aligned}
+m_t &= \beta_1\, m_{t-1} + (1-\beta_1)\, g_t,\\
+v_t &= \beta_2\, v_{t-1} + (1-\beta_2)\, g_t^2,\\
+\theta_t &= \theta_{t-1} - \eta\, \hat m_t \,/\, \bigl(\sqrt{\hat v_t}+\epsilon\bigr),
+\end{aligned}
+\end{equation}
+où $\hat m_t$ et $\hat v_t$ sont les moyennes corrigées du biais initial et $\eta$ le taux d'apprentissage.
+
+\subsection{Coût des convolutions séparables}
+Pour $M$ canaux d'entrée, $N$ canaux de sortie, un noyau $k{\times}k$ et une carte de taille $D{\times}D$, le rapport entre le coût d'une convolution séparable en profondeur et celui d'une convolution standard vaut~\cite{howard2017} :
+\begin{equation}
+\frac{D^2 M k^2 + D^2 M N}{D^2 M N k^2} = \frac{1}{N} + \frac{1}{k^2},
+\end{equation}
+soit environ $1/9$ pour $k = 3$ et $N$ grand : c'est l'origine de la légèreté de MobileNetV2.
+
+\subsection{Connexions résiduelles}
+Un bloc résiduel calcule $y = x + \mathcal{F}(x)$~\cite{he2016resnet}. Son gradient, $\partial y / \partial x = I + \partial \mathcal{F} / \partial x$, contient l'identité : le signal d'erreur traverse le bloc même quand $\mathcal{F}$ apprend peu, ce qui évite l'évanouissement du gradient dans les réseaux profonds.
+
+\subsection{Mise à l'échelle composée}
+EfficientNet~\cite{tan2019} agrandit profondeur $d$, largeur $w$ et résolution $r$ avec un seul coefficient $\phi$ :
+\begin{equation}\label{eq:scaling}
+d = \alpha^{\phi},\quad w = \beta^{\phi},\quad r = \gamma^{\phi},\quad \text{avec } \alpha\,\beta^{2}\gamma^{2} \approx 2,
+\end{equation}
+si bien que le coût de calcul est multiplié par environ $2^{\phi}$. EfficientNetB0 correspond à $\phi = 0$.
+
+\subsection{Calibration}
+La mise à l'échelle en température~\cite{guo2017} divise les logits par un scalaire $T > 0$, sans changer la classe prédite :
+\begin{equation}
+\hat p = \mathrm{softmax}(z / T),\qquad T^\star = \arg\min_{T}\; -\sum_{i \in \mathrm{val}} \log \hat p_{i, y_i}.
+\end{equation}
+$T > 1$ adoucit des probabilités trop confiantes ; $T < 1$ accentue des probabilités trop prudentes. L'erreur de calibration attendue compare confiance et exactitude sur des tranches de confiance $B_b$ :
+\begin{equation}
+\mathrm{ECE} = \sum_{b=1}^{15} \frac{|B_b|}{N}\,\bigl|\mathrm{acc}(B_b) - \mathrm{conf}(B_b)\bigr|.
+\end{equation}
+
+\subsection{Classification sélective et seuils du jeu}
+Pour un seuil $\tau$, la couverture est la part des scans acceptés, $c(\tau) = \frac{1}{N}\sum_i \mathbf{1}[\max \hat p_i \geq \tau]$, et la précision sélective est l'accuracy sur ces seuls scans. Le seuil haut du jeu est
+\begin{equation}
+\tau_{\mathrm{haut}} = \min\bigl\{\tau : \mathrm{acc}\bigl(\{i : \max \hat p_i \geq \tau\}\bigr) \geq 0{,}95\bigr\},
+\end{equation}
+calculé sur la validation ; le seuil bas suit la même règle avec l'accuracy top-3.
+
+\subsection{Explicabilité : Grad-CAM}
+Pour la classe $c$ et les cartes d'activation $A^k$ de la dernière couche convolutive, Grad-CAM~\cite{selvaraju2017} pondère chaque carte par la moyenne de son gradient :
+\begin{equation}
+\alpha_k^c = \frac{1}{Z}\sum_{i,j} \frac{\partial z_c}{\partial A^k_{ij}},\qquad L^c = \mathrm{ReLU}\Bigl(\sum_k \alpha_k^c A^k\Bigr).
+\end{equation}
+La carte $L^c$, agrandie à la taille de l'image, montre les zones qui augmentent le score de la classe $c$.
+
+\subsection{Métriques d'évaluation}
+Pour chaque classe $c$, la précision et le rappel valent $P_c = \mathrm{VP}_c / (\mathrm{VP}_c + \mathrm{FP}_c)$ et $R_c = \mathrm{VP}_c / (\mathrm{VP}_c + \mathrm{FN}_c)$, et le F1 est leur moyenne harmonique. Les versions \emph{macro} font la moyenne sur les classes, si bien que chaque espèce pèse autant :
+\begin{equation}
+\mathrm{F1}_{\mathrm{macro}} = \frac{1}{K}\sum_{c=1}^{K} \frac{2 P_c R_c}{P_c + R_c},\qquad \mathrm{Acc}_{\mathrm{éq}} = \frac{1}{K}\sum_{c=1}^{K} R_c .
+\end{equation}
+L'accuracy top-3 compte une prédiction comme juste si la bonne classe figure parmi les trois plus probables. L'AUC mesure la qualité du classement des scores, indépendamment de tout seuil.
+
+\subsection{Inférence statistique}
+\textbf{Bootstrap.} On tire avec remise $B = 1\,000$ échantillons de la taille du jeu de test ; l'intervalle de confiance à 95\,\% est formé des centiles 2,5 et 97,5 des accuracies obtenues~\cite{efron1979}.
+\textbf{Test de McNemar.} Soient $n_{01}$ et $n_{10}$ le nombre d'images bien classées par un seul des deux modèles. Sous l'hypothèse que les deux modèles se valent, $n_{01} \sim \mathcal{B}(n_{01}+n_{10},\, \tfrac12)$ ; nous utilisons le test binomial exact correspondant~\cite{mcnemar1947}.
+
+\subsection{Mesures de qualité d'image}
+La netteté est estimée par la variance du laplacien de l'image en niveaux de gris $I$ : une image floue a peu de transitions brusques, donc une faible variance de
+\begin{equation}
+\Delta I(i,j) = I(i{+}1,j) + I(i{-}1,j) + I(i,j{+}1) + I(i,j{-}1) - 4 I(i,j).
+\end{equation}
+L'empreinte perceptuelle dHash réduit l'image à $17{\times}16$ pixels en niveaux de gris et code 256 bits, $h_{ij} = \mathbf{1}[I(i, j{+}1) > I(i, j)]$ ; deux images d'empreintes identiques sont des copies, même redimensionnées ou recompressées.
+
+% =====================================================================================
+\section{Données et exploration}\label{sec:data}
+% =====================================================================================
+\subsection{Description du jeu de données}
+Nous utilisons \emph{House Plant Species}~\cite{houseplant}, publié sur Kaggle : 14\,790 fichiers, dont \nFiles{} images réparties en \nClasses{} espèces de plantes d'intérieur, avec un dossier par espèce. Les images ont été collectées sur le moteur de recherche Bing et triées à la main par des non-spécialistes. Elles montrent des plantes entières ou des gros plans, en intérieur comme en extérieur : elles sont plus proches de ce qu'un téléphone verrait que des images de laboratoire sur fond uni. Le jeu de données est distribué sous licence non commerciale.
+
+\subsection{Distribution des classes}
+La Fig.~\ref{fig:classes} montre un déséquilibre marqué : un rapport de \imbalance{} entre la classe la plus fournie et la plus rare. Dans le jeu d'entraînement, le Monstera compte 383 images contre 46 pour le Yucca. Un modèle pourrait négliger les classes rares sans que l'accuracy globale bouge : nous suivons donc aussi le F1 macro et l'accuracy équilibrée, et nous pondérons la perte.
+
+\begin{figure}[!htb]
+\centering
+\fig{fig_class_distribution}{\columnwidth}{6cm}
+\caption{Nombre d'images par classe ; le pointillé indique la médiane.}
+\label{fig:classes}
+\end{figure}
+
+\subsection{Résolution et qualité des images}
+La Fig.~\ref{fig:eda} résume les mesures de l'audit. Les résolutions s'étalent sur plusieurs ordres de grandeur (b) : un redimensionnement commun est indispensable. La luminosité (c) et la netteté (d) varient fortement, ce qui laisse prévoir une sensibilité aux conditions de prise de vue et motive les tests de robustesse.
+
+\begin{figure*}[!t]
+\centering
+\fig{fig_eda_summary}{\textwidth}{3cm}
+\caption{Synthèse de l'exploration : (a) effectifs par classe, triés ; (b) résolution (petit côté, échelle log) ; (c) luminosité moyenne ; (d) netteté (variance du laplacien, échelle log).}
+\label{fig:eda}
+\end{figure*}
+
+\subsection{Doublons et conflits d'étiquettes}
+Les empreintes MD5 (copies exactes) et dHash (copies redimensionnées ou recompressées) révèlent \nDup{} images en double. Laissées telles quelles, ces copies pourraient se retrouver à la fois en entraînement et en test et gonfler artificiellement le score. Aucun groupe de copies n'est réparti sur deux classes (\nConflict{} conflit d'étiquette) : le jeu est plus propre que prévu, mais il fallait le vérifier pour pouvoir l'affirmer.
+
+\subsection{Séparabilité des classes avant entraînement}
+Nous extrayons les descripteurs d'un MobileNetV2 pré-entraîné, non ré-entraîné, sur 40 images par classe. Un classifieur des 5 plus proches voisins, évalué par validation croisée à 5 blocs, atteint \knnBaseline\,\%. Ce plancher indique ce que donnent les descripteurs ImageNet bruts : un modèle entraîné doit le dépasser nettement pour justifier son coût.
+
+\subsection{Synthèse : des constats aux décisions}
+Le Tableau~\ref{tab:eda2pre} relie chaque constat de l'exploration à une décision de prétraitement. C'est le fil conducteur de la section suivante.
+
+\begin{table}[!htb]
+\caption{Des constats de l'exploration aux décisions de prétraitement.}
+\label{tab:eda2pre}
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}LL@{}}
+\toprule
+Constat & Décision\\
+\midrule
+Images minuscules ou très allongées & filtrage (petit côté $<$ 96\,px, format hors $[0{,}4 ; 2{,}5]$)\\
+\nDup{} doublons & une seule copie conservée, avant le découpage\\
+Déséquilibre $\times$\imbalance & découpage stratifié, perte pondérée, F1 macro\\
+Résolutions et orientations hétérogènes & cache normalisé à 256\,px, orientation EXIF corrigée\\
+Luminosité et netteté variables & augmentation photométrique, tests de robustesse\\
+Plancher $k$-NN à \knnBaseline\,\% & seuil de référence pour juger l'entraînement\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================================
+\section{Prétraitement}\label{sec:pre}
+% =====================================================================================
+\subsection{Nettoyage}
+Le Tableau~\ref{tab:clean} détaille le nettoyage. Toutes les images sont lisibles. Quatre sont écartées pour leur taille ou leur format, et neuf doublons sont retirés. Il reste \nClean{} images, soit \nRemoved{} de moins.
+
+\begin{table}[!htb]
+\caption{Étapes du nettoyage.}
+\label{tab:clean}
+\centering\scriptsize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Étape & Images restantes & Retirées\\
+\midrule
+Images indexées & 14\,784 & --\\
+Lisibles & 14\,784 & 0\\
+Taille et format acceptables & 14\,780 & 4\\
+Sans conflit d'étiquette & 14\,780 & 0\\
+Sans doublon & 14\,771 & 9\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Découpage et pondération}
+Les données nettoyées sont découpées en 70\,\% pour l'entraînement (\nTrain{} images), 15\,\% pour la validation (\nVal{}) et 15\,\% pour le test (\nTest{}), de façon stratifiée. Le découpage a lieu \emph{après} le dédoublonnage : une même photo ne peut donc pas apparaître dans deux sous-ensembles. Les poids de classes sont calculés sur le seul jeu d'entraînement.
+
+\subsection{Normalisation}
+Chaque image est réorientée selon ses métadonnées EXIF, convertie en RVB, ramenée à 256\,px sur son petit côté puis recadrée au centre en $256{\times}256$. C'est le protocole ImageNet classique : un recadrage aléatoire de 224\,px dans 256 sert d'augmentation, un recadrage central sert à l'évaluation. La mise à l'échelle des pixels propre à chaque architecture (Tableau~\ref{tab:archi}) est intégrée au modèle, ce qui supprime un risque d'erreur dans l'application.
+
+\subsection{Augmentation des données}
+Chaque transformation simule une variation réelle d'un scan et ne change pas l'espèce (Tableau~\ref{tab:aug}). Le miroir vertical est exclu, car une plante en pot a un haut et un bas ; le changement de teinte aussi, car la couleur du feuillage distingue des espèces~\cite{shorten2019}.
+
+\begin{table}[!htb]
+\caption{Augmentations appliquées à l'entraînement.}
+\label{tab:aug}
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}lLL@{}}
+\toprule
+Transformation & Réglage & Ce qu'elle simule\\
+\midrule
+Recadrage aléatoire & 224 dans 256\,px & cadrage approximatif\\
+Miroir horizontal & probabilité 0,5 & plante vue de l'autre côté\\
+Luminosité & $\pm$15\,\% & éclairage variable\\
+Contraste & $\times$ 0,8 à 1,25 & capteurs différents\\
+Saturation & $\times$ 0,8 à 1,25 & balance des couleurs\\
+Rotation & $\pm$22° & téléphone incliné\\
+Zoom & $-$15\,\% à +10\,\% & distance variable\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Effet de l'augmentation (ablation)}
+Le Tableau~\ref{tab:abl} compare les deux variantes. Sans augmentation, l'accuracy de validation est un peu plus haute (\ablNoAugVal\,\% contre \ablAugVal\,\%), mais l'écart entre entraînement et validation passe de 0,9 à 7,1 points : le modèle commence à apprendre par cœur. Sur images dégradées, l'accuracy absolue est presque la même (\ablAugRob\,\% contre \ablNoAugRob\,\%), mais la perte relative due aux dégradations est plus faible avec augmentation (16,5\,\% contre 21,0\,\%). Dans ce régime court (base gelée, peu d'époques), l'augmentation agit donc surtout comme régularisation ; son bénéfice devrait croître avec la durée d'entraînement.
+
+\begin{table}[!htb]
+\caption{Ablation de l'augmentation (MobileNetV2, tête seule). Propre et dégradée : sur les 562 images du protocole de robustesse.}
+\label{tab:abl}
+\centering\scriptsize\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Variante & Entr. & Val. & Écart & Propre & Dégr. & Perte\\
+\midrule
+@@ABL@@
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================================
+\section{Modélisation et choix des algorithmes}\label{sec:model}
+% =====================================================================================
+\subsection{Justification des choix}
+Le sujet impose un CNN, le transfert d'apprentissage (MobileNet ou ResNet) et un réglage d'hyperparamètres. Nous avons choisi chaque modèle pour son \emph{rôle} dans l'étude plutôt que pour sa popularité : le CNN de référence mesure l'apport du pré-entraînement ; MobileNetV2 est le candidat naturel pour le mobile ; ResNet50V2, environ neuf fois plus lourd, teste si la capacité paie ; EfficientNetB0 représente le compromis issu de la mise à l'échelle composée. Nous avons préféré ResNet50V2 à ResNet50 car il partage avec MobileNetV2 la même normalisation d'entrée, ce qui rend la comparaison plus propre. Nous n'avons pas retenu de détecteur d'objets (de type YOLO) : nos images contiennent une seule plante, et la tâche est une classification.
+
+\subsection{Tête de classification commune}
+Les trois modèles pré-entraînés reçoivent la même tête (Fig.~\ref{fig:train}) : regroupement global moyen, couche dense de \hpDense{} unités avec ReLU, dropout de \hpDropout{}, puis couche de \nClasses{} logits. Le softmax est séparé des logits, car Grad-CAM et la calibration en ont besoin. Le CNN de référence se termine par la même structure.
+
+\subsection{Hyperparamètres retenus}
+Optuna retient un taux d'apprentissage de $\hpLr$, un dropout de \hpDropout{}, une couche dense de \hpDense{} unités et un lissage de \hpSmooth{} (Tableau~\ref{tab:optuna}). Un dropout faible associé à une couche dense est cohérent avec un jeu de taille moyenne et une base gelée : la tête a besoin de capacité, et l'augmentation régularise déjà.
+
+\subsection{Entraînement}
+Sur le GPU T4, l'entraînement complet a duré 15,7 minutes pour EfficientNetB0, 19,0 pour ResNet50V2, 14,5 pour MobileNetV2 et 27,7 pour le CNN de référence, dont la phase unique est plus longue. L'arrêt anticipé a restauré pour chaque modèle les poids de la meilleure époque de validation.
+
+% =====================================================================================
+\section{Évaluation et comparaison des modèles}\label{sec:eval}
+% =====================================================================================
+\subsection{Performances globales}
+Le Tableau~\ref{tab:res} rapporte les performances sur les \nTest{} images de test. Les trois modèles pré-entraînés dépassent largement le CNN de référence (+15 à +19,5 points d'accuracy) et le plancher $k$-NN (\knnBaseline\,\%). EfficientNetB0 est en tête sur toutes les métriques, avec \bestAcc\,\% d'accuracy (intervalle de confiance à 95\,\% : [\bestCiLow ; \bestCiHigh]) et \bestF\,\% de F1 macro. L'accuracy équilibrée reste proche de l'accuracy : le déséquilibre est bien compensé. La bonne espèce figure dans le top-3 dans \bestTop\,\% des cas, ce qui garantit l'intérêt du quiz d'observation.
+
+\begin{table*}[!t]
+\caption{Performances sur le jeu de test (\nTest{} images). Acc. : accuracy et intervalle de confiance à 95\,\% (bootstrap) ; Acc. éq. : accuracy équilibrée ; AUC : AUC macro un-contre-tous. Valeurs en \%, sauf paramètres et AUC.}
+\label{tab:res}
+\centering\footnotesize\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Modèle & Par. (M) & Acc. [IC 95\,\%] & Acc. éq. & F1 macro & Top-3 & AUC\\
+\midrule
+@@RESULTS@@
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Significativité de l'écart}
+EfficientNetB0 et ResNet50V2 sont proches (89,3 contre 88,0\,\%) et leurs intervalles de confiance se chevauchent. Le test de McNemar donne $p = \mcnemarP$ : au seuil de 5\,\%, nous ne pouvons pas conclure que l'un est plus précis que l'autre. Le choix doit donc se faire sur d'autres critères.
+
+\subsection{Coût et compromis}
+Le Tableau~\ref{tab:cost} et la Fig.~\ref{fig:tradeoff} comparent le coût des modèles. EfficientNetB0 est 4,6 fois plus rapide que ResNet50V2 sur CPU (\bestCpu{} contre 89,9\,ms) et 5,5 fois plus léger (\bestSize{} contre 96,2\,Mo). MobileNetV2 est encore 2,3 fois plus rapide (8,6\,ms) et plus léger (10,2\,Mo), au prix de 4,6 points d'accuracy. Le CNN de référence montre qu'un faible nombre de paramètres ne garantit pas la rapidité : ses convolutions classiques sur des cartes de grande taille le rendent huit fois plus lent que MobileNetV2. La conversion en TensorFlow Lite fait perdre 1 à 3 points sur le sous-échantillon de 300 images ; cette mesure, sur un petit échantillon, est à interpréter avec prudence.
+
+\begin{table}[!htb]
+\caption{Coût des modèles. Taille du fichier Keras et TFLite ; latence par image sur un cœur de CPU (TFLite) et sur GPU (lots de 32) ; accuracy TFLite sur 300 images de test ; durée d'entraînement.}
+\label{tab:cost}
+\centering\scriptsize\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Modèle & Keras & TFLite & CPU & GPU & Acc. & Entr.\\
+ & (Mo) & (Mo) & (ms) & (ms) & TFLite & (min)\\
+\midrule
+@@COST@@
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htb]
+\centering
+\fig{fig_tradeoff}{0.95\columnwidth}{5cm}
+\caption{Compromis précision / latence TFLite (échelle log) ; l'aire des points est proportionnelle à la taille du modèle.}
+\label{fig:tradeoff}
+\end{figure}
+
+\subsection{Analyse par classe et des erreurs}
+La matrice de confusion (Fig.~\ref{fig:conf}) est fortement diagonale. Ses principales cases hors diagonale sont botaniquement cohérentes : le dragonnier pris pour le yucca (deux Asparagacées aux feuilles en épée), le bégonia pris pour le bégonia croix de fer (même genre), l'aréca pris pour le palmier nain (deux palmiers), et des confusions entre maranta, cténanthe et calathéa (toutes trois des Marantacées) ou entre kalanchoé et arbre de jade (deux Crassulacées). Ce sont les erreurs qu'un débutant ferait aussi ; elles justifient le quiz d'observation, qui demande à l'élève de départager des espèces proches. Enfin, la corrélation entre l'effectif d'entraînement d'une classe et son F1 est faible ($\rho$ de Spearman = 0,11) : la pondération empêche les classes rares d'être sacrifiées.
+
+\begin{figure*}[!t]
+\centering
+\fig{fig_confusion}{0.62\textwidth}{9cm}
+\caption{Matrice de confusion normalisée d'EfficientNetB0 sur le jeu de test (47 classes) ; chaque ligne somme à 1.}
+\label{fig:conf}
+\end{figure*}
+
+\subsection{Robustesse aux conditions de prise de vue}
+Le Tableau~\ref{tab:rob} et la Fig.~\ref{fig:rob} présentent la robustesse. EfficientNetB0 garde la meilleure accuracy moyenne sur les 25 conditions dégradées (79,1\,\%), devant ResNet50V2 (78,4\,\%), qui perd un peu moins en relatif (10,2 contre 11,5\,\%) et résiste mieux au bruit fort. Rotation et exposition coûtent moins de 5 points aux modèles pré-entraînés ; le bruit et le flou sont les plus pénalisants. Le CNN de référence s'effondre au-delà du niveau 3 et perd 27,2\,\% de son accuracy : la robustesse vient largement du pré-entraînement. Ces résultats, cohérents avec~\cite{mohanty2016,hendrycks2019}, signalent aussi que de vraies photos de mauvaise qualité feront baisser la précision.
+
+\begin{table*}[!t]
+\caption{Robustesse sur 562 images de test : accuracy (\%) sans dégradation, moyenne sur les cinq niveaux de chaque dégradation, moyenne générale et perte relative.}
+\label{tab:rob}
+\centering\footnotesize\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+Modèle & Propre & Sous-exp. & Sur-exp. & Flou & Rotation & Bruit & Moyenne & Perte rel.\\
+\midrule
+@@ROB@@
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure*}[!t]
+\centering
+\fig{fig_robustness}{\textwidth}{3.2cm}
+\caption{Accuracy en fonction du niveau de cinq dégradations simulant une prise de vue au téléphone (niveau 0 : image d'origine).}
+\label{fig:rob}
+\end{figure*}
+
+\subsection{Explicabilité}
+Sur les prédictions correctes, les cartes Grad-CAM (Fig.~\ref{fig:cam}) se concentrent sur les organes de la plante : inflorescences de la jacinthe, motifs foliaires du bégonia croix de fer, pétales du lis et du chrysanthème. Le modèle ne s'appuie ni sur le pot ni sur le fond, ce qui écarte les raccourcis les plus courants. La figure montre aussi la limite du jeu de données : une image étiquetée « jacinthe » semble représenter un muscari, genre voisin. Le bruit d'étiquette est visible jusque dans les exemples bien classés.
+
+\begin{figure*}[!t]
+\centering
+\fig{fig_gradcam}{0.92\textwidth}{5cm}
+\caption{Cartes Grad-CAM d'EfficientNetB0 sur six images de test correctement classées (en haut : image ; en bas : zones déterminantes, du bleu au rouge).}
+\label{fig:cam}
+\end{figure*}
+
+\subsection{Calibration et mécanique de jeu}
+Avant calibration, EfficientNetB0 est \emph{sous}-confiant (Fig.~\ref{fig:calib}, à gauche) : son accuracy dépasse la confiance qu'il annonce. C'est l'inverse du cas habituel~\cite{guo2017}, et un effet attendu du lissage d'étiquettes, qui pousse le modèle à éviter les probabilités extrêmes~\cite{muller2019}. La température optimale est donc inférieure à 1 ($T = \tempT$) ; elle ramène l'ECE de \eceBefore\,\% à \eceAfter\,\%.
+
+La Fig.~\ref{fig:calib} (à droite) montre la précision sélective : plus on accepte de scans, plus l'accuracy des scans acceptés baisse. Le Tableau~\ref{tab:game} donne le résultat des seuils sur le test. 86,6\,\% des scans débloquent directement une carte, et 95,0\,\% de ces cartes sont justes, exactement l'objectif fixé sur la validation. Le quiz concerne 13,4\,\% des scans ; la bonne espèce figure dans le top-3 dans 83,4\,\% de ces cas, un taux plus bas que l'objectif de 95\,\%, qui porte sur l'ensemble des scans acceptés et non sur cette seule zone, où se concentrent les cas difficiles. Un seul scan est refusé : sur des images du même domaine, le nouveau scan ne se déclenche presque jamais ; il est prévu pour les vraies prises de vue dégradées.
+
+\begin{figure*}[!t]
+\centering
+\fig{fig_calibration}{0.92\textwidth}{4cm}
+\caption{À gauche : diagramme de fiabilité avant et après mise à l'échelle en température. À droite : accuracy des scans acceptés en fonction de la part de scans acceptés ; les pointillés marquent les seuils de la carte et du quiz.}
+\label{fig:calib}
+\end{figure*}
+
+\begin{table}[!htb]
+\caption{Mécanique de jeu sur le jeu de test (seuils choisis sur la validation).}
+\label{tab:game}
+\centering\scriptsize\setlength{\tabcolsep}{2.5pt}
+\begin{tabularx}{\columnwidth}{@{}llrL@{}}
+\toprule
+Issue & $\max \hat p$ & Part (\%) & Fiabilité\\
+\midrule
+@@GAME@@
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Version embarquée quantifiée}
+Quantifié sur 8 bits, EfficientNetB0 passe de \bestSize{} à \quantSize\,Mo (3,5 fois plus léger), pour une accuracy de \quantAcc\,\% contre 87,7\,\% en 32 bits sur les mêmes 300 images. Sur notre CPU de serveur, il est pourtant plus lent (33,0 contre 19,7\,ms) : la quantification dynamique reconvertit les poids pendant le calcul, et son intérêt en vitesse dépend du processeur. Le gain de taille est acquis ; le gain de vitesse reste à mesurer sur téléphone.
+
+% =====================================================================================
+\section{Discussion}\label{sec:disc}
+% =====================================================================================
+\subsection{Choix du modèle}
+Trois arguments désignent EfficientNetB0 : il est le plus précis, même si l'écart avec ResNet50V2 n'est pas significatif ; il a la meilleure accuracy sous dégradations ; il est 4,6 fois plus rapide et 5,5 fois plus léger que ResNet50V2. MobileNetV2 reste l'option pour les appareils les plus modestes, s'il est acceptable de perdre environ 5 points.
+
+\subsection{Observations sur l'application}
+Nos essais de l'application avec des photos du Web illustrent les trois issues du jeu. Une photo nette de yucca, même floue en arrière-plan, débloque la carte avec 94\,\% de confiance. Une photo de \emph{Monstera adansonii}, espèce absente du jeu de données, déclenche le quiz (63\,\% Monstera, 36\,\% pothos) : le modèle hésite à juste titre, et le jeu transforme ce doute en exercice d'observation. Enfin, une tasse décorée de fleurs déclenche aussi le quiz (30\,\% pour la classe la plus probable) au lieu d'un nouveau scan : un modèle à \nClasses{} classes répartit toujours sa probabilité entre des plantes connues. La détection des objets hors catalogue reste donc à traiter.
+
+\subsection{Limites}
+\begin{itemize}
+\item \textbf{Domaine.} Les images viennent du Web et non de vrais scans en RA ; l'écart de domaine n'est pas mesuré.
+\item \textbf{Étiquettes.} Elles n'ont pas été validées par des botanistes ; nous en avons observé au moins une douteuse.
+\item \textbf{Hyperparamètres.} Ils ont été cherchés sur une seule architecture, en 12 essais seulement, puis transposés aux autres.
+\item \textbf{Variabilité.} Une seule graine d'entraînement : l'intervalle de confiance mesure l'incertitude due au jeu de test, pas celle due à l'entraînement.
+\item \textbf{Latence.} Elle a été mesurée sur un serveur, pas sur un téléphone.
+\item \textbf{Pédagogie.} L'effet du jeu sur l'apprentissage des élèves n'a pas été mesuré.
+\end{itemize}
+
+% =====================================================================================
+\section{Conclusion et perspectives}\label{sec:concl}
+% =====================================================================================
+Nous avons construit et évalué la chaîne complète d'HerbaQuest, de l'audit des données à une application de démonstration. Sous un protocole commun, le transfert d'apprentissage surpasse nettement un CNN entraîné de zéro, et le choix final dépend autant du coût et de la robustesse que de la précision. EfficientNetB0 offre le meilleur compromis : \bestAcc\,\% d'accuracy sur \nClasses{} espèces, la meilleure robustesse moyenne et \bestCpu\,ms par image sur CPU. La calibration rend sa confiance fiable (ECE de \eceAfter\,\%), ce qui permet de l'utiliser comme règle du jeu : l'incertitude du modèle devient un moment d'apprentissage plutôt qu'une source d'erreur.
+
+Quatre perspectives prolongent ce travail : collecter de vrais scans pour mesurer l'écart de domaine ; détecter les objets hors catalogue, par exemple par un seuil sur la distance aux classes connues ; quantifier le modèle en entiers et mesurer sa latence sur téléphone ; enfin, mener une étude auprès d'élèves pour vérifier que le quiz d'observation améliore la mémorisation.
+
+\begin{thebibliography}{99}
+\bibitem{akcayir2017} M.~Akçayır et G.~Akçayır, \og Advantages and challenges associated with augmented reality for education: A systematic review of the literature\fg{}, \emph{Educational Research Review}, vol.~20, p.~1--11, 2017.
+\bibitem{deterding2011} S.~Deterding, D.~Dixon, R.~Khaled et L.~Nacke, \og From game design elements to gamefulness: Defining ``gamification''\fg{}, \emph{Proc. 15th Int. Academic MindTrek Conf.}, 2011, p.~9--15.
+\bibitem{hamari2014} J.~Hamari, J.~Koivisto et H.~Sarsa, \og Does gamification work? A literature review of empirical studies on gamification\fg{}, \emph{Proc. 47th Hawaii Int. Conf. System Sciences}, 2014, p.~3025--3034.
+\bibitem{waldchen2018} J.~Wäldchen et P.~Mäder, \og Plant species identification using computer vision techniques: A systematic literature review\fg{}, \emph{Archives of Computational Methods in Engineering}, vol.~25, n\textsuperscript{o}~2, p.~507--543, 2018.
+\bibitem{nilsback2008} M.-E.~Nilsback et A.~Zisserman, \og Automated flower classification over a large number of classes\fg{}, \emph{Proc. Indian Conf. Computer Vision, Graphics and Image Processing}, 2008, p.~722--729.
+\bibitem{krizhevsky2012} A.~Krizhevsky, I.~Sutskever et G.~E.~Hinton, \og ImageNet classification with deep convolutional neural networks\fg{}, \emph{Advances in NeurIPS}, vol.~25, 2012, p.~1097--1105.
+\bibitem{mohanty2016} S.~P.~Mohanty, D.~P.~Hughes et M.~Salathé, \og Using deep learning for image-based plant disease detection\fg{}, \emph{Frontiers in Plant Science}, vol.~7, art.~1419, 2016.
+\bibitem{bharadwaj2025} B.~Bharadwaj, A.~Mishra et S.~Bharadwaj, \og Transfer learning-based CNN models for plant species identification using leaf venation patterns\fg{}, arXiv:2509.03729, 2025.
+\bibitem{valuvanathorn2026} S.~Valuvanathorn et C.~Supaartagorn, \og Comparison of CNN architectures for Thai medicinal plant classification\fg{}, \emph{ECTI Trans. Computer and Information Technology}, vol.~20, n\textsuperscript{o}~2, p.~247--257, 2026.
+\bibitem{yao2025} M.~Yao et S.~Zeng, \og Today's technology for today's environment: Comparison of convolutional neural networks for invasive plant identification\fg{}, \emph{Proc. 11th World Congress on Electrical Engineering and Computer Systems and Sciences (EECSS'25)}, Paris, 2025, article MVML~137.
+\bibitem{foamete2025} C.~D.~Foamete, P.~S.~Popescu et M.~C.~Mihaescu, \og Plant Recogniser: Offline plant identification on Android\fg{}, \emph{Proc. ICUSI}, 2025, p.~175--180.
+\bibitem{bolohan2025} C.-S.~Bolohan et A.~Iftene, \og Flower Identifier -- Augmented reality application for flower recognition\fg{}, \emph{Proc. ICUSI}, 2025, p.~59--65.
+\bibitem{desilva2026} P.~De~Silva, C.~Prabodhani et D.~Herath, \og Farm and Learn: An offline mobile learning system integrating AR, AI, and game-based learning for agricultural education among children\fg{}, \emph{Int. J. Advanced Computer Science and Applications}, vol.~17, n\textsuperscript{o}~2, 2026.
+\bibitem{guo2017} C.~Guo, G.~Pleiss, Y.~Sun et K.~Q.~Weinberger, \og On calibration of modern neural networks\fg{}, \emph{Proc. ICML}, 2017, p.~1321--1330.
+\bibitem{hendrycks2019} D.~Hendrycks et T.~Dietterich, \og Benchmarking neural network robustness to common corruptions and perturbations\fg{}, \emph{Proc. ICLR}, 2019.
+\bibitem{geifman2017} Y.~Geifman et R.~El-Yaniv, \og Selective classification for deep neural networks\fg{}, \emph{Advances in NeurIPS}, vol.~30, 2017, p.~4878--4887.
+\bibitem{lecun1998} Y.~LeCun, L.~Bottou, Y.~Bengio et P.~Haffner, \og Gradient-based learning applied to document recognition\fg{}, \emph{Proc. IEEE}, vol.~86, n\textsuperscript{o}~11, p.~2278--2324, 1998.
+\bibitem{ioffe2015} S.~Ioffe et C.~Szegedy, \og Batch normalization: Accelerating deep network training by reducing internal covariate shift\fg{}, \emph{Proc. ICML}, 2015, p.~448--456.
+\bibitem{srivastava2014} N.~Srivastava, G.~Hinton, A.~Krizhevsky, I.~Sutskever et R.~Salakhutdinov, \og Dropout: A simple way to prevent neural networks from overfitting\fg{}, \emph{J. Machine Learning Research}, vol.~15, p.~1929--1958, 2014.
+\bibitem{pan2010} S.~J.~Pan et Q.~Yang, \og A survey on transfer learning\fg{}, \emph{IEEE Trans. Knowledge and Data Engineering}, vol.~22, n\textsuperscript{o}~10, p.~1345--1359, 2010.
+\bibitem{deng2009} J.~Deng, W.~Dong, R.~Socher, L.-J.~Li, K.~Li et L.~Fei-Fei, \og ImageNet: A large-scale hierarchical image database\fg{}, \emph{Proc. IEEE CVPR}, 2009, p.~248--255.
+\bibitem{yosinski2014} J.~Yosinski, J.~Clune, Y.~Bengio et H.~Lipson, \og How transferable are features in deep neural networks?\fg{}, \emph{Advances in NeurIPS}, vol.~27, 2014, p.~3320--3328.
+\bibitem{howard2017} A.~G.~Howard, M.~Zhu, B.~Chen, D.~Kalenichenko, W.~Wang, T.~Weyand, M.~Andreetto et H.~Adam, \og MobileNets: Efficient convolutional neural networks for mobile vision applications\fg{}, arXiv:1704.04861, 2017.
+\bibitem{sandler2018} M.~Sandler, A.~Howard, M.~Zhu, A.~Zhmoginov et L.-C.~Chen, \og MobileNetV2: Inverted residuals and linear bottlenecks\fg{}, \emph{Proc. IEEE CVPR}, 2018, p.~4510--4520.
+\bibitem{he2016resnet} K.~He, X.~Zhang, S.~Ren et J.~Sun, \og Deep residual learning for image recognition\fg{}, \emph{Proc. IEEE CVPR}, 2016, p.~770--778.
+\bibitem{he2016} K.~He, X.~Zhang, S.~Ren et J.~Sun, \og Identity mappings in deep residual networks\fg{}, \emph{Proc. ECCV}, 2016, p.~630--645.
+\bibitem{tan2019} M.~Tan et Q.~Le, \og EfficientNet: Rethinking model scaling for convolutional neural networks\fg{}, \emph{Proc. ICML}, 2019, p.~6105--6114.
+\bibitem{kingma2015} D.~P.~Kingma et J.~Ba, \og Adam: A method for stochastic optimization\fg{}, \emph{Proc. ICLR}, 2015.
+\bibitem{szegedy2016} C.~Szegedy, V.~Vanhoucke, S.~Ioffe, J.~Shlens et Z.~Wojna, \og Rethinking the Inception architecture for computer vision\fg{}, \emph{Proc. IEEE CVPR}, 2016, p.~2818--2826.
+\bibitem{muller2019} R.~Müller, S.~Kornblith et G.~E.~Hinton, \og When does label smoothing help?\fg{}, \emph{Advances in NeurIPS}, vol.~32, 2019.
+\bibitem{bergstra2011} J.~Bergstra, R.~Bardenet, Y.~Bengio et B.~Kégl, \og Algorithms for hyper-parameter optimization\fg{}, \emph{Advances in NeurIPS}, vol.~24, 2011, p.~2546--2554.
+\bibitem{akiba2019} T.~Akiba, S.~Sano, T.~Yanase, T.~Ohta et M.~Koyama, \og Optuna: A next-generation hyperparameter optimization framework\fg{}, \emph{Proc. ACM SIGKDD}, 2019, p.~2623--2631.
+\bibitem{jacob2018} B.~Jacob, S.~Kligys, B.~Chen, M.~Zhu, M.~Tang, A.~Howard, H.~Adam et D.~Kalenichenko, \og Quantization and training of neural networks for efficient integer-arithmetic-only inference\fg{}, \emph{Proc. IEEE CVPR}, 2018, p.~2704--2713.
+\bibitem{selvaraju2017} R.~R.~Selvaraju, M.~Cogswell, A.~Das, R.~Vedantam, D.~Parikh et D.~Batra, \og Grad-CAM: Visual explanations from deep networks via gradient-based localization\fg{}, \emph{Proc. IEEE ICCV}, 2017, p.~618--626.
+\bibitem{naeini2015} M.~P.~Naeini, G.~F.~Cooper et M.~Hauskrecht, \og Obtaining well calibrated probabilities using Bayesian binning\fg{}, \emph{Proc. AAAI}, 2015, p.~2901--2907.
+\bibitem{efron1979} B.~Efron, \og Bootstrap methods: Another look at the jackknife\fg{}, \emph{The Annals of Statistics}, vol.~7, n\textsuperscript{o}~1, p.~1--26, 1979.
+\bibitem{mcnemar1947} Q.~McNemar, \og Note on the sampling error of the difference between correlated proportions or percentages\fg{}, \emph{Psychometrika}, vol.~12, n\textsuperscript{o}~2, p.~153--157, 1947.
+\bibitem{dietterich1998} T.~G.~Dietterich, \og Approximate statistical tests for comparing supervised classification learning algorithms\fg{}, \emph{Neural Computation}, vol.~10, n\textsuperscript{o}~7, p.~1895--1923, 1998.
+\bibitem{shorten2019} C.~Shorten et T.~M.~Khoshgoftaar, \og A survey on image data augmentation for deep learning\fg{}, \emph{J. Big Data}, vol.~6, art.~60, 2019.
+\bibitem{houseplant} K.~Gregorowicz, \og House Plant Species\fg{}, jeu de données Kaggle, \url{kaggle.com/datasets/kacpergregorowicz/house-plant-species}.
+\end{thebibliography}
+\end{document}
+"""
+
+for key, val in {"@@RESULTS@@": T_RESULTS, "@@COST@@": T_COST, "@@ROB@@": T_ROB, "@@ABL@@": T_ABL, "@@GAME@@": T_GAME}.items():
+    assert key in TEX, key
+    TEX = TEX.replace(key, val)
+OUT.write_text(TEX, encoding="utf-8")
+print("écrit :", OUT, len(TEX.split()), "mots environ")
